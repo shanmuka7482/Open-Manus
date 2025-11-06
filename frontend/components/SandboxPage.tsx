@@ -11,6 +11,7 @@ interface SandboxPageProps {
 }
 
 export const SandboxPage: React.FC<SandboxPageProps> = ({ autoRun = false }) => {
+  console.log("Auto-run:", autoRun);
   const [prompt, setPrompt] = useState('');
   const [steps, setSteps] = useState<any[]>([]);
   const [finalOutput, setFinalOutput] = useState('');
@@ -191,6 +192,7 @@ export const SandboxPage: React.FC<SandboxPageProps> = ({ autoRun = false }) => 
       <div className="p-6 flex justify-between items-center">
         <div>
           <h1 className="text-2xl mb-1">Sandbox</h1>
+          {autoRun && <p>Auto-running your sandbox...</p>}
           <p className="text-muted-foreground">Experiment, test, and refine your AI prompts here</p>
         </div>
         <div className="flex items-center space-x-3">
