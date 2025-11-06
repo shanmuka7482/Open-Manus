@@ -29,6 +29,7 @@ app.use(
     origin: [
       'http://localhost:5173',
       'https://smart-agents.vercel.app',
+      'https://open-manus.onrender.com',
     ],
     credentials: true,
   })
