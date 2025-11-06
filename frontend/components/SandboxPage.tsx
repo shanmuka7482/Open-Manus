@@ -6,7 +6,11 @@ import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { vscDarkPlus as darkStyle } from "react-syntax-highlighter/dist/esm/styles/prism";
 import { vs as lightStyle } from "react-syntax-highlighter/dist/esm/styles/prism";
 
-export function SandboxPage() {
+interface SandboxPageProps {
+  autoRun?: boolean;
+}
+
+export const SandboxPage: React.FC<SandboxPageProps> = ({ autoRun = false }) => {
   const [prompt, setPrompt] = useState('');
   const [steps, setSteps] = useState<any[]>([]);
   const [finalOutput, setFinalOutput] = useState('');
