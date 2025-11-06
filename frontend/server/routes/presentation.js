@@ -1,5 +1,6 @@
-const express = require("express");
-const fetch = require("node-fetch");
+import fetch from "node-fetch";
+import express from "express";
+
 const router = express.Router();
 
 router.post("/generate-ppt", async (req, res) => {
@@ -29,4 +30,4 @@ router.post("/generate-ppt", async (req, res) => {
   }
 });
 
-module.exports = router;
+export default router;
