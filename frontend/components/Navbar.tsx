@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from './ui/button';
 import { Avatar, AvatarFallback } from './ui/avatar';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from './ui/dropdown-menu';
@@ -6,7 +6,6 @@ import { Bell, Moon, Sun, Menu, LogOut, UserPlus, Shield } from 'lucide-react';
 import { useTheme } from './ThemeProvider';
 import { MobileAppPreview } from './MobileAppPreview';
 import { ShiningStars } from './ShiningStars';
-import { LanguageSwitcher } from './LanguageSwitcher';
 
 interface NavbarProps {
   onToggleSidebar: () => void;
@@ -18,6 +17,17 @@ interface NavbarProps {
 export function Navbar({ onToggleSidebar, onToggleAppPreview, showAppPreview, onLogout }: NavbarProps) {
   const { theme, toggleTheme } = useTheme();
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
+  const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
+
+  useEffect(() => {
+    // Load email and username from localStorage on mount
+    const storedEmail = localStorage.getItem('email') || '';
+    const storedUsername = localStorage.getItem('username') || '';
+
+    setEmail(storedEmail);
+    setUsername(storedUsername || (storedEmail ? storedEmail.split('@')[0] : ''));
+  }, []);
 
   return (
     <div className="h-16 bg-background border-b border-border flex items-center justify-between px-6">
@@ -70,27 +80,25 @@ export function Navbar({ onToggleSidebar, onToggleAppPreview, showAppPreview, on
           )}
         </button>
 
-        {/* Language Switcher */}
-        <LanguageSwitcher variant="ghost" size="sm" />
-
         {/* Profile with dropdown */}
         <DropdownMenu open={userDropdownOpen} onOpenChange={setUserDropdownOpen}>
           <DropdownMenuTrigger asChild>
             <button className="flex items-center space-x-3 hover:bg-muted/50 rounded-lg p-2 transition-colors">
               <Avatar className="w-8 h-8">
                 <AvatarFallback className="bg-gradient-to-r from-[#7B61FF] to-[#9F7AEA] text-white text-base rounded-full w-10 h-10 flex items-center justify-center">
-                  YK
+                  {username ? username.charAt(0).toUpperCase() : 'U'}
                 </AvatarFallback>
+
               </Avatar>
               <div className="hidden sm:block">
-                <div className="text-sm font-medium">Yeswanth Kosuri</div>
+                <div className="text-sm font-medium"><span className="font-semibold">{username || 'User'}</span></div>
               </div>
             </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-56 bg-card/95 backdrop-blur-xl">
             <div className="px-3 py-2">
-              <p className="text-sm font-medium">Yeswanth Kosuri</p>
-              <p className="text-xs text-muted-foreground">yeswanth@example.com</p>
+              <p className="text-sm font-medium"><span className="font-semibold">{username || 'User'}</span></p>
+              <p className="text-xs text-muted-foreground"><span className="font-semibold">{email || 'User'}</span></p>
             </div>
             <DropdownMenuSeparator />
             <DropdownMenuItem className="cursor-pointer hover:bg-muted/50">

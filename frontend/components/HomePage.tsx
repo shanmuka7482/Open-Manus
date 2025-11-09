@@ -18,6 +18,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { VoiceModal } from './VoiceModal';
 import { AnimatedSphere } from './AnimatedSphere';
 import { ChatMessage, ChatSession } from '../App';
+import { useUser, UserButton } from "@clerk/clerk-react";
 
 interface HomePageProps {
   onNavigateToSandbox?: () => void;
@@ -26,10 +27,11 @@ interface HomePageProps {
 
 export function HomePage({ onNavigateToSandbox, continueSession }: HomePageProps) {
   const [email, setEmail] = useState('');
-  const [username, setUsername] = useState('');
+  const [isDraft, setIsDraft] = useState(true);
+  const [isPrivate, setIsPrivate] = useState(true);
   const [prompt, setPrompt] = useState('');
   const [isVoiceModalOpen, setIsVoiceModalOpen] = useState(false);
-  const [selectedModel, setSelectedModel] = useState('Nava ai');
+  const [selectedModel, setSelectedModel] = useState('Nava AI');
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [currentSessionId, setCurrentSessionId] = useState(() => Date.now().toString());
   const [showOptions, setShowOptions] = useState(true);
@@ -39,14 +41,28 @@ export function HomePage({ onNavigateToSandbox, continueSession }: HomePageProps
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    // Load email and username from localStorage on mount
-    const storedEmail = localStorage.getItem('email') || '';
-    const storedUsername = localStorage.getItem('username') || '';
+  const { user } = useUser();
 
-    setEmail(storedEmail);
-    setUsername(storedUsername || (storedEmail ? storedEmail.split('@')[0] : ''));
+  const userEmail = user?.primaryEmailAddress?.emailAddress;
+
+  const username =
+    user?.username ||
+    user?.firstName ||
+    user?.fullName ||
+    (userEmail ? userEmail.split("@")[0] : "User");
+
+  useEffect(() => {
+    const savedDraft = localStorage.getItem('isDraft');
+    const savedPrivate = localStorage.getItem('isPrivate');
+    if (savedDraft !== null) setIsDraft(savedDraft === 'true');
+    if (savedPrivate !== null) setIsPrivate(savedPrivate === 'true');
   }, []);
+
+  useEffect(() => {
+    localStorage.setItem('isDraft', String(isDraft));
+    localStorage.setItem('isPrivate', String(isPrivate));
+  }, [isDraft, isPrivate]);
+
 
   const aiModels = [
     "GPT-4",
@@ -146,11 +162,11 @@ export function HomePage({ onNavigateToSandbox, continueSession }: HomePageProps
 
     // Basic greetings
     if (input === 'hi' || input === 'hey') {
-      return 'Hi Yeswanth Kosuri! How can I help you today?';
+      return `Hi ${username}! How can I help you today?`;
     }
 
     if (input === 'hello' || input.startsWith('hello')) {
-      return 'Hello Yeswanth Kosuri! What would you like me to create for you?';
+      return `Hello ${username}! What would you like me to create for you?`;
     }
 
     // Mathematical operations
@@ -200,7 +216,7 @@ export function HomePage({ onNavigateToSandbox, continueSession }: HomePageProps
     }
 
     if (input.includes('thank you') || input.includes('thanks')) {
-      return "You're welcome, Yeswanth! Happy to help. Is there anything else you'd like to create?";
+      return "You're welcome, ! Happy to help. Is there anything else you'd like to create?";
     }
 
     // Time and date
@@ -271,7 +287,7 @@ export function HomePage({ onNavigateToSandbox, continueSession }: HomePageProps
   };
 
   return (
-    <div className="flex flex-col h-screen max-h-screen overflow-hidden bg-background">
+    <div className="flex flex-col h-screen max-h-screen overflow-hidden">
       {/* Scrollable Chat Messages Area */}
       <div
         ref={chatContainerRef}
@@ -284,7 +300,7 @@ export function HomePage({ onNavigateToSandbox, continueSession }: HomePageProps
 
         {chatMessages.length === 0 ? (
           <div className="flex items-center justify-center min-h-full px-4 text-center">
-            <div className="max-w-md sm:max-w-2xl">
+            <div className=" sm:max-w-2xl">
               <div className="mb-6 sm:mb-8 flex justify-center scale-75 sm:scale-100">
                 <AnimatedSphere size="small" />
               </div>
@@ -295,12 +311,31 @@ export function HomePage({ onNavigateToSandbox, continueSession }: HomePageProps
               <p className="text-base sm:text-xl text-muted-foreground mb-6 sm:mb-8">
                 What can I create for you today?
               </p>
+
               <div className="flex items-center justify-center space-x-2 px-3 py-1.5 sm:px-4 sm:py-2 bg-orange-400/10 rounded-lg sm:rounded-xl inline-flex text-xs sm:text-sm">
                 <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-orange-400 rounded-full animate-pulse"></div>
-                <span className="text-orange-600 dark:text-orange-400">Draft</span>
+
+                {/* Status toggle */}
+                <span
+                  onClick={() => setIsDraft(prev => !prev)}
+                  className="text-orange-600 dark:text-orange-400 cursor-pointer hover:underline"
+                >
+                  {isDraft ? 'Draft' : 'Published'}
+                </span>
+
                 <span className="text-muted-foreground">•</span>
-                <span className="text-muted-foreground">Private</span>
+
+                {/* Visibility toggle */}
+                <span
+                  onClick={() => setIsPrivate(prev => !prev)}
+                  className={`cursor-pointer hover:underline ${isPrivate ? 'text-muted-foreground' : 'text-green-400'
+                    }`}
+                >
+                  {isPrivate ? 'Private' : 'Public'}
+                </span>
               </div>
+
+
             </div>
           </div>
         ) : (
@@ -353,7 +388,7 @@ export function HomePage({ onNavigateToSandbox, continueSession }: HomePageProps
       {/* Fixed Footer */}
       {/* Fixed Footer - Input Area */}
       <div
-        className="sticky bottom-0 left-0 w-full bg-background border-t border-border z-20 backdrop-blur-md"
+        className="sticky bottom-0 left-0 w-full"
         style={{
           padding: "0.5rem 1rem",
           maxHeight: "30vh",
@@ -398,10 +433,13 @@ export function HomePage({ onNavigateToSandbox, continueSession }: HomePageProps
                 </DropdownMenuContent>
               </DropdownMenu>
 
-              {/* Text Input */}
               <Input
                 value={prompt}
-                onChange={(e) => setPrompt(e.target.value)}
+                onChange={(e) => {
+                  setPrompt(e.target.value);
+                  // Store in localStorage for sandbox access
+                  localStorage.setItem('navaSandboxPrompt', e.target.value);
+                }}
                 onKeyPress={handleKeyPress}
                 placeholder="Ask Nava AI anything..."
                 className="flex-1 text-sm sm:text-base bg-transparent border-none focus:ring-0 focus:outline-none placeholder:text-muted-foreground/70"

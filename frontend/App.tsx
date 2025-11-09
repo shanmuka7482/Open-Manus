@@ -1,15 +1,18 @@
-import { useState, useEffect } from 'react';
-import { ThemeProvider } from './components/ThemeProvider';
-import { LandingPage } from './components/LandingPage';
-import { LoginPage } from './components/LoginPage';
-import { SignUpPage } from './components/SignUpPage';
-import { DashboardLayout } from './components/DashboardLayout';
-import { HomePage } from './components/HomePage';
-import { SandboxPage } from './components/SandboxPage';
-import { HistoryPage } from './components/HistoryPage';
-import { SettingsPage } from './components/SettingsPage';
-import Pricing from './components/Pricing'
-import { BrowserRouter } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { ThemeProvider } from "./components/ThemeProvider";
+import { LandingPage } from "./components/LandingPage";
+import { LoginPage } from "./components/LoginPage";
+import { SignUpPage } from "./components/SignUpPage";
+import { DashboardLayout } from "./components/DashboardLayout";
+import { HomePage } from "./components/HomePage";
+import { SandboxPage } from "./components/SandboxPage";
+import { HistoryPage } from "./components/HistoryPage";
+import { SettingsPage } from "./components/SettingsPage";
+import Pricing from "./components/Pricing";
+import { ClerkProvider, SignedIn, SignedOut } from "@clerk/clerk-react";
+
+const clerkPubKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
 
 export interface ChatMessage {
   id: string;
@@ -27,101 +30,76 @@ export interface ChatSession {
 }
 
 export default function App() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [showLogin, setShowLogin] = useState(false);
-  const [showSignUp, setShowSignUp] = useState(false);
-  const [currentPage, setCurrentPage] = useState('home');
+  const [currentPage, setCurrentPage] = useState("home");
   const [sandboxAutoRun, setSandboxAutoRun] = useState(false);
   const [continueSession, setContinueSession] = useState<ChatSession | null>(null);
 
   useEffect(() => {
-    document.title = 'Nava AI';
+    document.title = "Nava AI";
   }, []);
-
-  const handleNavigateToLogin = () => {
-    setShowLogin(true);
-    setShowSignUp(false);
-  };
-
-  const handleNavigateToSignUp = () => {
-    setShowSignUp(true);
-    setShowLogin(false);
-  };
-
-  const handleLogin = () => {
-    setIsLoggedIn(true);
-  };
-
-  const handleSignUp = () => {
-    setIsLoggedIn(true);
-  };
 
   const handleNavigate = (page: string) => {
     setCurrentPage(page);
-    if (page !== 'sandbox') {
-      setSandboxAutoRun(false);
-    }
+    if (page !== "sandbox") setSandboxAutoRun(false);
   };
 
   const handleNavigateToSandboxWithAutoRun = () => {
     setSandboxAutoRun(true);
-    setCurrentPage('sandbox');
+    setCurrentPage("sandbox");
   };
 
   const handleContinueChat = (session: ChatSession) => {
     setContinueSession(session);
-    setCurrentPage('home');
+    setCurrentPage("home");
   };
 
-
-  const handleLogout = () => {
-    setIsLoggedIn(false);
-    setShowLogin(false);
-    setShowSignUp(false);
-    setCurrentPage('home');
-    setContinueSession(null);
+  const handleNavigateToLogin = () => {
+    window.location.href = "/sign-in";
   };
-
-  if (!showLogin && !showSignUp && !isLoggedIn) {
-    return (
-      <ThemeProvider>
-        <LandingPage onNavigateToLogin={handleNavigateToLogin} />
-      </ThemeProvider>
-    );
-  }
-
-  if (showSignUp && !isLoggedIn) {
-    return (
-      <ThemeProvider>
-        <SignUpPage onSignUp={handleSignUp} onNavigateToLogin={handleNavigateToLogin} />
-      </ThemeProvider>
-    );
-  }
-
-  if (!isLoggedIn) {
-    return (
-      <ThemeProvider>
-        <LoginPage onLogin={handleLogin} onNavigateToSignUp={handleNavigateToSignUp} />
-      </ThemeProvider>
-    );
-  }
 
   return (
-    <BrowserRouter>
-      <ThemeProvider>
-        <DashboardLayout currentPage={currentPage} onNavigate={handleNavigate} onLogout={handleLogout}>
-          {currentPage === 'home' && (
-            <HomePage
-              onNavigateToSandbox={handleNavigateToSandboxWithAutoRun}
-              continueSession={continueSession}
+    <ClerkProvider publishableKey={clerkPubKey}>
+      <BrowserRouter>
+        <ThemeProvider>
+          <Routes>
+            <Route path="/sign-in/*" element={<LoginPage />} />
+            <Route path="/sign-up/*" element={<SignUpPage />} />
+
+            <Route
+              path="/"
+              element={
+                <>
+                  <SignedIn>
+                    <DashboardLayout
+                      currentPage={currentPage}
+                      onNavigate={handleNavigate}
+                      onLogout={() => {}}
+                    >
+                      {currentPage === "home" && (
+                        <HomePage
+                          onNavigateToSandbox={handleNavigateToSandboxWithAutoRun}
+                          continueSession={continueSession}
+                        />
+                      )}
+                      {currentPage === "sandbox" && <SandboxPage autoRun={sandboxAutoRun} />}
+                      {currentPage === "history" && (
+                        <HistoryPage onContinueChat={handleContinueChat} />
+                      )}
+                      {currentPage === "settings" && <SettingsPage />}
+                      {currentPage === "pricing" && <Pricing />}
+                    </DashboardLayout>
+                  </SignedIn>
+
+                  <SignedOut>
+                    {/* ✅ Pass onNavigateToLogin here */}
+                    <LandingPage onNavigateToLogin={handleNavigateToLogin} />
+                  </SignedOut>
+                </>
+              }
             />
-          )}
-          {currentPage === 'sandbox' && <SandboxPage autoRun={sandboxAutoRun} />}
-          {currentPage === 'history' && <HistoryPage onContinueChat={handleContinueChat} />}
-          {currentPage === 'settings' && <SettingsPage />}
-          {currentPage === 'pricing' && <Pricing />}
-        </DashboardLayout>
-      </ThemeProvider>
-    </BrowserRouter>
+          </Routes>
+        </ThemeProvider>
+      </BrowserRouter>
+    </ClerkProvider>
   );
 }
