@@ -64,6 +64,28 @@ export function HomePage({ onNavigateToSandbox, continueSession }: HomePageProps
   }, [isDraft, isPrivate]);
 
 
+  /** LISTEN FOR SANDBOX SAVE EVENTS **/
+  useEffect(() => {
+    const refresh = (e: any) => {
+      const raw = localStorage.getItem("nava-ai-chat-history") || "[]";
+      const history = JSON.parse(raw);
+
+      const session = history.find((s: any) => s.id === currentSessionId);
+      if (session) {
+        setChatMessages(
+          session.messages.map((m: any) => ({
+            ...m,
+            timestamp: new Date(m.timestamp)
+          }))
+        );
+      }
+    };
+
+    window.addEventListener("nava-history-updated", refresh);
+    return () => window.removeEventListener("nava-history-updated", refresh);
+  }, [currentSessionId]);
+
+
   const aiModels = [
     "GPT-4",
     "GPT-4o",
@@ -250,10 +272,10 @@ export function HomePage({ onNavigateToSandbox, continueSession }: HomePageProps
     };
 
     setChatMessages(prev => [...prev, userMessage]);
+    localStorage.setItem("sandbox-session-id", currentSessionId);
 
     // Check if user wants code generation
-    if (prompt.toLowerCase().includes('code')) {
-      // Add a response message
+    if (prompt.toLowerCase().includes("code")) {
       const aiMessage: ChatMessage = {
         id: (Date.now() + 1).toString(),
         content: "I'll help you with that code! Opening the sandbox to generate and test your code...",
@@ -262,12 +284,15 @@ export function HomePage({ onNavigateToSandbox, continueSession }: HomePageProps
       };
       setChatMessages(prev => [...prev, aiMessage]);
 
-      // Navigate to sandbox after a brief delay
+      // 🔥 Store session so sandbox knows where to save messages
+      localStorage.setItem("sandbox-session-id", currentSessionId);
+
+      // Navigate after short delay
       setTimeout(() => {
         if (onNavigateToSandbox) {
           onNavigateToSandbox();
         }
-      }, 1500);
+      }, 800);
     } else {
       // Generate regular response
       const response = generateResponse(prompt);
