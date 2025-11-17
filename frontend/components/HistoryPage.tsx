@@ -14,29 +14,34 @@ export function HistoryPage({ onContinueChat }: HistoryPageProps) {
   const [selectedSession, setSelectedSession] = useState<string | null>(null);
 
   useEffect(() => {
-    // Load chat history from localStorage
-    const savedHistory = localStorage.getItem('nava-ai-chat-history');
-    if (savedHistory) {
-      try {
-        const parsed = JSON.parse(savedHistory);
-        setChatSessions(parsed.map((session: any) => ({
-          ...session,
-          createdAt: new Date(session.createdAt),
-          lastUpdated: new Date(session.lastUpdated),
-          messages: session.messages.map((msg: any) => ({
-            ...msg,
-            timestamp: new Date(msg.timestamp)
-          }))
-        })));
-      } catch (error) {
-        console.error('Error loading chat history:', error);
-      }
-    }
+    const sync = () => {
+      const saved = localStorage.getItem("nava-ai-chat-history");
+      if (!saved) return;
+      const parsed = JSON.parse(saved);
+
+      setChatSessions(parsed.map((session: any) => ({
+        ...session,
+        createdAt: new Date(session.createdAt),
+        lastUpdated: new Date(session.lastUpdated),
+        messages: session.messages.map((msg: any) => ({
+          ...msg,
+          timestamp: new Date(msg.timestamp)
+        }))
+      })));
+    };
+
+    window.addEventListener("storage", sync);
+    window.addEventListener("focus", sync);
+
+    return () => {
+      window.removeEventListener("storage", sync);
+      window.removeEventListener("focus", sync);
+    };
   }, []);
 
   const filteredSessions = chatSessions.filter(session =>
     session.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    session.messages.some(msg => 
+    session.messages.some(msg =>
       msg.content.toLowerCase().includes(searchQuery.toLowerCase())
     )
   );
@@ -78,7 +83,7 @@ export function HistoryPage({ onContinueChat }: HistoryPageProps) {
               <Trash2 className="w-4 h-4" />
             </Button>
           </div>
-          
+
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
@@ -107,9 +112,8 @@ export function HistoryPage({ onContinueChat }: HistoryPageProps) {
                 <div
                   key={session.id}
                   onClick={() => setSelectedSession(session.id)}
-                  className={`p-4 rounded-xl cursor-pointer transition-all hover:bg-muted/50 ${
-                    selectedSession === session.id ? 'bg-primary/10' : 'bg-card/50'
-                  }`}
+                  className={`p-4 rounded-xl cursor-pointer transition-all hover:bg-muted/50 ${selectedSession === session.id ? 'bg-primary/10' : 'bg-card/50'
+                    }`}
                 >
                   <div className="flex items-start justify-between mb-2">
                     <h3 className="font-medium text-sm truncate flex-1 mr-2">
@@ -125,16 +129,29 @@ export function HistoryPage({ onContinueChat }: HistoryPageProps) {
                       <Trash2 className="w-3 h-3" />
                     </button>
                   </div>
-                  
+
                   <div className="flex items-center space-x-2 text-xs text-muted-foreground">
                     <Calendar className="w-3 h-3" />
                     <span>{session.lastUpdated.toLocaleDateString()}</span>
                     <Clock className="w-3 h-3 ml-2" />
                     <span>{session.lastUpdated.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                   </div>
-                  
                   <p className="text-xs text-muted-foreground mt-2 line-clamp-2">
-                    {session.messages[session.messages.length - 1]?.content || 'No messages'}
+                    {(() => {
+                      const last = session.messages[session.messages.length - 1];
+
+                      if (!last) return "No messages";
+
+                      // If content starts with "data:image" it's an image
+                      if (typeof last.content === "string" && last.content.startsWith("data:image"))
+                        return "🖼️ Image generated";
+
+                      // If it's long, shorten preview
+                      if (last.content.length > 120)
+                        return last.content.substring(0, 120) + "...";
+
+                      return last.content;
+                    })()}
                   </p>
                 </div>
               ))}
@@ -166,7 +183,7 @@ export function HistoryPage({ onContinueChat }: HistoryPageProps) {
                 )}
               </div>
             </div>
-            
+
             <div className="flex-1 overflow-y-auto p-6">
               <div className="max-w-4xl mx-auto space-y-6">
                 {selectedSessionData.messages.map((message) => (
@@ -175,13 +192,25 @@ export function HistoryPage({ onContinueChat }: HistoryPageProps) {
                     className={`flex ${message.isUser ? 'justify-end' : 'justify-start'}`}
                   >
                     <div
-                      className={`max-w-[80%] p-4 rounded-2xl ${
-                        message.isUser
-                          ? 'bg-gradient-to-r from-[#7B61FF] to-[#9F7AEA] text-white'
-                          : 'bg-card/80 backdrop-blur-xl'
-                      }`}
+                      className={`max-w-[80%] p-4 rounded-2xl ${message.isUser
+                        ? 'bg-gradient-to-r from-[#7B61FF] to-[#9F7AEA] text-white'
+                        : 'bg-card/80 backdrop-blur-xl'
+                        }`}
                     >
-                      <p className="text-sm leading-relaxed whitespace-pre-wrap">{message.content}</p>
+                      <p className="text-sm leading-relaxed whitespace-pre-wrap">
+                        {message.content.startsWith("data:image") ? (
+                          <img
+                            src={message.content}
+                            className="max-w-xs rounded-lg border border-border"
+                            alt="Generated"
+                          />
+                        ) : (
+                          <p className="text-sm leading-relaxed whitespace-pre-wrap">
+                            {message.content}
+                          </p>
+                        )}
+
+                      </p>
                       <div className={`text-xs mt-2 opacity-70 ${message.isUser ? 'text-white/70' : 'text-muted-foreground'}`}>
                         {message.timestamp.toLocaleString()}
                       </div>
