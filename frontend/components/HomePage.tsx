@@ -81,7 +81,7 @@ const throttle = <T extends (...args: any[]) => void>(fn: T, wait = 350) => {
 };
 
 export function HomePage({ onNavigateToSandbox, continueSession }: HomePageProps) {
-  const [isDraft, setIsDraft] = useState(true);
+  const [isDraft, setIsDraft] = useState(false);
   const [prompt, setPrompt] = useState('');
   const [isVoiceModalOpen, setIsVoiceModalOpen] = useState(false);
   const [selectedModel, setSelectedModel] = useState('Nava AI');
@@ -97,7 +97,7 @@ export function HomePage({ onNavigateToSandbox, continueSession }: HomePageProps
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-    const [selectedOption, setSelectedOption] = useState<'Image' | 'Slides' | 'Spreadsheet' | 'Webpage' | 'Visualization' | 'More' | null>(null);
+  const [selectedOption, setSelectedOption] = useState<'Image' | 'Slides' | 'Spreadsheet' | 'Webpage' | 'Visualization' | 'More' | null>(null);
 
   const { user } = useUser();
   const HISTORY_KEY = user ? `nava-ai-history-${user.id}` : null;
@@ -110,7 +110,7 @@ export function HomePage({ onNavigateToSandbox, continueSession }: HomePageProps
     user?.fullName ||
     (userEmail ? userEmail.split("@")[0] : "User");
 
- useEffect(() => {
+  useEffect(() => {
     localStorage.setItem('isDraft', String(isDraft));
   }, [isDraft]);
 
@@ -165,12 +165,13 @@ export function HomePage({ onNavigateToSandbox, continueSession }: HomePageProps
       const sessionTitle = chatMessages[0]?.content.slice(0, 50) + (chatMessages[0]?.content.length > 50 ? '...' : '');
 
       const session = {
-        id: currentSessionId,
-        title: sessionTitle,
-        messages: chatMessages,
-        createdAt: chatMessages[0]?.timestamp || new Date(),
-        lastUpdated: new Date()
-      };
+      id: currentSessionId,
+      title: sessionTitle,
+      messages: chatMessages,
+      createdAt: chatMessages[0]?.timestamp || new Date(),
+      lastUpdated: new Date(),
+      isDraft: isDraft
+    };
 
       if (sessionIndex >= 0) {
         existingHistory[sessionIndex] = session;
@@ -182,7 +183,7 @@ export function HomePage({ onNavigateToSandbox, continueSession }: HomePageProps
       const limitedHistory = existingHistory.slice(0, 50);
       localStorage.setItem('nava-ai-chat-history', JSON.stringify(limitedHistory));
     }
-  }, [chatMessages, currentSessionId]);
+  }, [chatMessages, currentSessionId, HISTORY_KEY, isDraft]);
 
   const handleFileUpload = () => {
     fileInputRef.current?.click();
@@ -475,7 +476,7 @@ export function HomePage({ onNavigateToSandbox, continueSession }: HomePageProps
 
                 {/* Status toggle */}
                 <span
-                  onClick={() => setIsDraft((prev) => !prev)}
+                  onClick={() => setIsDraft(prev => !prev)}
                   className="text-orange-600 dark:text-orange-400 cursor-pointer hover:underline"
                 >
                   {isDraft ? 'Draft' : 'Published'}
