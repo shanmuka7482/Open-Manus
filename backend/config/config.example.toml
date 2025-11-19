@@ -1,11 +1,10 @@
 # Global LLM configuration
 [llm]
-model = "minimax/minimax-m2"       # The LLM model to use
-base_url = "https://openrouter.ai/api/v1" # API endpoint URL
-api_key = "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"                   # Your API key
+model = "claude-3-7-sonnet-20250219"       # The LLM model to use
+base_url = "https://api.anthropic.com/v1/" # API endpoint URL
+api_key = "YOUR_API_KEY"                   # Your API key
 max_tokens = 8192                          # Maximum number of tokens in the response
 temperature = 0.0                          # Controls randomness
-
 
 # [llm] # Amazon Bedrock
 # api_type = "aws"                                       # Required
@@ -51,9 +50,9 @@ temperature = 0.0                          # Controls randomness for vision mode
 # Optional configuration for specific browser configuration
 # [browser]
 # Whether to run browser in headless mode (default: false)
-headless = true
+#headless = false
 # Disable browser security features (default: true)
-disable_security = true
+#disable_security = true
 # Extra arguments to pass to the browser
 #extra_chromium_args = []
 # Path to a Chrome instance to use to connect to your normal browser
@@ -85,19 +84,16 @@ disable_security = true
 # Country code for search results. Options: "us" (United States), "cn" (China), etc.
 #country = "us"
 
-# Optional configuration for image generation
-[llm.image]
-api_key = "58e99a12c8bc73431440132f273773c19f661d7b161f1f2fcf2d3bd08c3637d36d3ce1b81b31e9f0a84095b64061aeab"                   # Your API key for Clipdrop
 
 ## Sandbox configuration
 #[sandbox]
-use_sandbox = true
-image = "python:3.12-slim"
-work_dir = "/workspace"
-memory_limit = "1g"  # 512m
-cpu_limit = 2.0
-timeout = 300
-network_enabled = true
+#use_sandbox = false
+#image = "python:3.12-slim"
+#work_dir = "/workspace"
+#memory_limit = "1g"  # 512m
+#cpu_limit = 2.0
+#timeout = 300
+#network_enabled = true
 
 # MCP (Model Context Protocol) configuration
 [mcp]

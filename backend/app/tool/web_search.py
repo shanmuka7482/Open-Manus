@@ -10,8 +10,11 @@ from app.config import config
 from app.logger import logger
 from app.tool.base import BaseTool, ToolResult
 from app.tool.search import (
+    BaiduSearchEngine,
+    BingSearchEngine,
     DuckDuckGoSearchEngine,
     GoogleSearchEngine,
+    WebSearchEngine,
 )
 from app.tool.search.base import SearchItem
 
@@ -187,12 +190,12 @@ class WebSearch(BaseTool):
         },
         "required": ["query"],
     }
-    # Only include engines that are imported above to avoid NameError
-    _search_engine: dict[str, Any] = {
+    _search_engine: dict[str, WebSearchEngine] = {
         "google": GoogleSearchEngine(),
+        "baidu": BaiduSearchEngine(),
         "duckduckgo": DuckDuckGoSearchEngine(),
+        "bing": BingSearchEngine(),
     }
-
     content_fetcher: WebContentFetcher = WebContentFetcher()
 
     async def execute(
@@ -292,10 +295,6 @@ class WebSearch(BaseTool):
         failed_engines = []
 
         for engine_name in engine_order:
-            if engine_name not in self._search_engine:
-                failed_engines.append(engine_name)
-                continue
-
             engine = self._search_engine[engine_name]
             logger.info(f"🔎 Attempting search with {engine_name.capitalize()}...")
             search_items = await self._perform_search_with_engine(
@@ -303,7 +302,6 @@ class WebSearch(BaseTool):
             )
 
             if not search_items:
-                failed_engines.append(engine_name)
                 continue
 
             if failed_engines:
@@ -391,7 +389,7 @@ class WebSearch(BaseTool):
     )
     async def _perform_search_with_engine(
         self,
-        engine: Any,
+        engine: WebSearchEngine,
         query: str,
         num_results: int,
         search_params: Dict[str, Any],

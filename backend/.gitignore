@@ -197,6 +197,3 @@ cython_debug/
 
 # OSX
 .DS_Store
-
-# node
-node_modules

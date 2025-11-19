@@ -88,9 +88,16 @@ class TokenCounter:
                 width, height = image_item["dimensions"]
                 return self._calculate_high_detail_tokens(width, height)
 
-        return (
-            self._calculate_high_detail_tokens(1024, 1024) if detail == "high" else 1024
-        )
+        # Default values when dimensions aren't available or detail level is unknown
+        if detail == "high":
+            # Default to a 1024x1024 image calculation for high detail
+            return self._calculate_high_detail_tokens(1024, 1024)  # 765 tokens
+        elif detail == "medium":
+            # Default to a medium-sized image for medium detail
+            return 1024  # This matches the original default
+        else:
+            # For unknown detail levels, use medium as default
+            return 1024
 
     def _calculate_high_detail_tokens(self, width: int, height: int) -> int:
         """Calculate tokens for high detail images based on dimensions"""
@@ -169,8 +176,6 @@ class TokenCounter:
             total_tokens += tokens
 
         return total_tokens
-
-
 class LLM:
     _instances: Dict[str, "LLM"] = {}
 
@@ -513,15 +518,8 @@ class LLM:
             Exception: For unexpected errors
         """
         try:
-            # For ask_with_images, we always set supports_images to True because
-            # this method should only be called with models that support images
-            if self.model not in MULTIMODAL_MODELS:
-                raise ValueError(
-                    f"Model {self.model} does not support images. Use a model from {MULTIMODAL_MODELS}"
-                )
-
-            # Format messages with image support
-            formatted_messages = self.format_messages(messages, supports_images=True)
+            # Format messages
+            formatted_messages = self.format_messages(messages)
 
             # Ensure the last message is from the user to attach images
             if not formatted_messages or formatted_messages[-1]["role"] != "user":
@@ -560,10 +558,7 @@ class LLM:
 
             # Add system messages if provided
             if system_msgs:
-                all_messages = (
-                    self.format_messages(system_msgs, supports_images=True)
-                    + formatted_messages
-                )
+                all_messages = self.format_messages(system_msgs) + formatted_messages
             else:
                 all_messages = formatted_messages
 

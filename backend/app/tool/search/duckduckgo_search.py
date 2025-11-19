@@ -1,6 +1,6 @@
 from typing import List
 
-from ddgs import DDGS
+from duckduckgo_search import DDGS
 
 from app.tool.search.base import SearchItem, WebSearchEngine
 
