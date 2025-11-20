@@ -1,18 +1,19 @@
-import asyncio
 import base64
-import os
-from fastapi import FastAPI, HTTPException
-from fastapi.responses import StreamingResponse, JSONResponse
-from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
-import requests
 import json
-from pptx import Presentation
-from pptx.util import Inches, Pt
+import os
 from io import BytesIO
 from urllib.parse import urlparse, urlunparse
-from app.agent.manus import Manus
+
+from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse, StreamingResponse
+from pydantic import BaseModel
+import requests
+from pptx import Presentation
+from pptx.util import Inches, Pt
+
 from app.logger import logger
+from app.services.agent_service import agent_service
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -72,36 +73,6 @@ app.add_middleware(
 @app.get("/")
 async def root():
     return {"status": "ok", "message": "OpenManus backend is running."}
-
-# ======================================================
-# 🔹 Agent Initialization
-# ======================================================
-agent = None
-
-@app.on_event("startup")
-async def startup_event():
-    """Initialize Manus agent asynchronously"""
-    global agent
-
-    async def initialize_agent():
-        try:
-            logger.info("🧠 Initializing Manus agent...")
-            global agent
-            agent = await Manus.create()
-            logger.info("✅ Manus agent ready.")
-        except Exception as e:
-            logger.error(f"❌ Manus initialization failed: {e}")
-
-    asyncio.create_task(initialize_agent())
-
-@app.on_event("shutdown")
-async def shutdown_event():
-    """Clean up Manus"""
-    global agent
-    if agent:
-        await agent.cleanup()
-        logger.info("🧹 Manus agent cleaned up.")
-
 
 # ======================================================
 # 🔹 Request Model
@@ -164,166 +135,34 @@ def call_openrouter(prompt: str, system_instruction: str = None):
 @app.post("/api/run")
 async def run_prompt(request: PromptRequest):
     """
-    Unified intelligent route — automatically detects intent.
-    Uses ClipDrop for images, SlidesGPT for presentations,
-    and OpenRouter for everything else.
+    Unified intelligent route — automatically detects intent and routes through agent service.
+    Flow: Prompt → api.py → agent_service → main.py (Manus agent)
     """
     prompt = request.prompt.strip()
-    print("🧠 Received prompt:", prompt)
-
-    openrouter_key = os.getenv("OPENROUTER_API_KEY")
-    clipdrop_key = os.getenv("CLIPDROP_API_KEY")
-    slidesgpt_key = os.getenv("SLIDESGPT_API_KEY")
-
-    if not openrouter_key:
-        raise HTTPException(status_code=500, detail="Missing OPENROUTER_API_KEY")
+    logger.info(f"🧠 Received prompt: {prompt}")
 
     # ======================================================
-    # 🧠 1️⃣ Detect Intent (keyword-based)
+    # 🧠 Route all requests through agent service (main.py flow)
     # ======================================================
-    intent_keywords = {
-        "image": ["image", "draw", "picture", "photo", "illustration", "logo", "design"],
-        "presentation": ["presentation", "slides", "ppt"],
-        "website": ["website", "webpage", "landing page"],
-        "code": ["code", "script", "function", "program", "algorithm"],
-    }
-
-    intent = "text"
-    for key, words in intent_keywords.items():
-        if any(word in prompt.lower() for word in words):
-            intent = key
-            break
-
-    print(f"🎯 Detected intent (keyword-based): {intent}")
-    print(f"🎯 Final intent used: {intent}")
-
-    # ======================================================
-    # 🎨 IMAGE via ClipDrop
-    # ======================================================
-    if "image" in intent:
-        print("🎨 Generating image via ClipDrop...")
-        try:
-            if not clipdrop_key:
-                return {"type": "image", "image_url": "https://placehold.co/1024x1024?text=Missing+ClipDrop+Key"}
-
-            img_res = requests.post(
-                "https://clipdrop-api.co/text-to-image/v1",
-                files={"prompt": (None, prompt, "text/plain")},
-                headers={"x-api-key": clipdrop_key},
-                timeout=60,
-            )
-            if img_res.ok:
-                img_b64 = base64.b64encode(img_res.content).decode("utf-8")
-                return {"type": "image", "image_url": f"data:image/png;base64,{img_b64}"}
-            return {"type": "image", "image_url": "https://placehold.co/1024x1024?text=ClipDrop+Error"}
-        except Exception as e:
-            print("🔥 ClipDrop error:", str(e))
-            return {"type": "image", "image_url": "https://placehold.co/1024x1024?text=Error"}
-
-    # ======================================================
-    # 🖼️ PRESENTATION via SlidesGPT → Downloadable PPTX
-    # ======================================================
-    if "presentation" in intent or "ppt" in intent:
-        print("🖼️ Generating presentation via SlidesGPT...")
-        try:
-            if not slidesgpt_key:
-                raise HTTPException(status_code=500, detail="Missing SLIDESGPT_API_KEY")
-
-            base_url = "https://api.slidesgpt.com"
-            path = "/api/presentation/generate"
-            full_url = "https://api.slidesgpt.com/api/presentation/generate"
-
-            key = (slidesgpt_key or "").strip()
-            if not key.startswith("sk-"):
-                print("⚠️ Warning: SLIDESGPT_API_KEY might be invalid or empty")
-
-            slides_res = requests.post(
-                full_url,
-                headers={
-                    "Authorization": f"Bearer {key}",
-                    "Content-Type": "application/json",
-                },
-                json={"topic": prompt.strip()},
-                timeout=120,
-            )
-
-            if slides_res.ok:
-                try:
-                    slides_data = slides_res.json()
-                    slides = slides_data.get("slides", slides_data)
-                    print("✅ SlidesGPT response received.")
-
-                    # ✅ Generate downloadable PPTX
-                    pptx_stream = generate_pptx_from_slides(slides, title=prompt.title())
-
-                    return StreamingResponse(
-                        pptx_stream,
-                        media_type="application/vnd.openxmlformats-officedocument.presentationml.presentation",
-                        headers={
-                            "Content-Disposition": f'attachment; filename="{prompt[:40].replace(" ", "_")}.pptx"'
-                        },
-                    )
-
-                except Exception as e:
-                    print("⚠️ SlidesGPT returned non-JSON data:", slides_res.text[:200])
-                    raise HTTPException(status_code=500, detail="Unexpected response format from SlidesGPT")
-
-            else:
-                print("⚠️ SlidesGPT API error:", slides_res.status_code, slides_res.text[:200])
-                fallback = call_openrouter(
-                    f"Create presentation slides for topic: {prompt}",
-                    "Return 5 slide points (titles + short content) in bullet format."
-                )
-                slides = fallback.split("\n\n")
-                pptx_stream = generate_pptx_from_slides(slides, title=prompt.title())
-                return StreamingResponse(
-                    pptx_stream,
-                    media_type="application/vnd.openxmlformats-officedocument.presentationml.presentation",
-                    headers={
-                        "Content-Disposition": f'attachment; filename="{prompt[:40].replace(" ", "_")}.pptx"'
-                    },
-                )
-
-        except Exception as e:
-            print("🔥 SlidesGPT generation error:", str(e))
-            fallback = call_openrouter(
-                f"Generate a short PowerPoint outline about: {prompt}",
-                "Return 5 concise slide sections with titles and 2 bullet points each."
-            )
-            slides = fallback.split("\n\n")
-            pptx_stream = generate_pptx_from_slides(slides, title=prompt.title())
-            return StreamingResponse(
-                pptx_stream,
-                media_type="application/vnd.openxmlformats-officedocument.presentationml.presentation",
-                headers={
-                    "Content-Disposition": f'attachment; filename="{prompt[:40].replace(" ", "_")}.pptx"'
-                },
-            )
-
-    # ======================================================
-    # 💻 CODE via OpenRouter
-    # ======================================================
-    if "code" in intent:
-        print("💻 Generating code via OpenRouter...")
-        result = call_openrouter(prompt, "Return only runnable code, no markdown or explanations.")
-        return {"type": "code", "output": result}
-
-    # ======================================================
-    # 🌐 WEBSITE via OpenRouter
-    # ======================================================
-    if "website" in intent:
-        print("🌐 Generating website via OpenRouter...")
-        html = call_openrouter(prompt, "Generate full HTML, CSS, JS for a complete website.")
-        if not html.lower().startswith("<!doctype html"):
-            html = "<!DOCTYPE html>\n" + html
-        return {"type": "website", "html": html}
-
-    # ======================================================
-    # 🧾 TEXT (default)
-    # ======================================================
-    print("🧾 Generating text via OpenRouter...")
-    output = call_openrouter(prompt)
-    return {"type": "text", "output": output}
+    try:
+        response = await agent_service.process_prompt(prompt)
+        logger.info(f"✅ Agent service completed with intent: {response.intent}")
+        
+        # Format response based on intent type
+        if response.intent == "image":
+            return {"type": "image", "output": response.output, "intent": response.intent}
+        elif response.intent == "presentation":
+            return {"type": "presentation", "output": response.output, "intent": response.intent}
+        elif response.intent == "python":
+            return {"type": "code", "output": response.output, "intent": response.intent}
+        elif response.intent == "website":
+            return {"type": "website", "output": response.output, "intent": response.intent}
+        else:
+            return {"type": "text", "output": response.output, "intent": response.intent}
+            
+    except Exception as e:
+        logger.exception(f"❌ Agent service error: {e}")
+        raise HTTPException(status_code=500, detail=f"Processing failed: {str(e)}")
 
 # ======================================================
 # 🔹 Code / PPT / Website Endpoints (Unchanged)
@@ -362,11 +201,9 @@ async def generate_image(req: ImageRequest):
 @app.post("/api/generate-ppt")
 async def generate_ppt(request: PromptRequest):
     try:
-        if not agent:
-            raise HTTPException(status_code=503, detail="Agent not ready yet.")
-        slides_text = await agent.run(f"Generate PowerPoint slide content for: {request.prompt}")
-        slides = slides_text.split("\n\n")
-        return {"type": "ppt", "slides": slides}
+        response = await agent_service.process_prompt(request.prompt, intent="presentation")
+        slides = [block.strip() for block in response.output.split("\n\n") if block.strip()]
+        return {"type": "ppt", "slides": slides, "raw": response.output}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"PPT generation failed: {str(e)}")
 
@@ -374,13 +211,46 @@ async def generate_ppt(request: PromptRequest):
 @app.post("/api/live-preview")
 async def live_preview(request: PromptRequest):
     try:
-        if not agent:
-            raise HTTPException(status_code=503, detail="Agent not ready yet.")
-        result = await agent.run(f"Generate full HTML/CSS/JS code for: {request.prompt}")
-        html_content = result.strip()
+        response = await agent_service.process_prompt(request.prompt, intent="website")
+        html_content = response.output.strip()
         return JSONResponse({"type": "website", "html": html_content})
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Website generation failed: {str(e)}")
+
+
+@app.websocket("/ws/prompt")
+async def prompt_websocket(websocket: WebSocket):
+    await websocket.accept()
+    try:
+        while True:
+            payload = await websocket.receive_text()
+            try:
+                data = json.loads(payload)
+            except json.JSONDecodeError:
+                await websocket.send_json({"status": "error", "detail": "Invalid JSON payload."})
+                continue
+
+            prompt = (data.get("prompt") or "").strip()
+            intent = data.get("intent")
+            if not prompt:
+                await websocket.send_json({"status": "error", "detail": "Prompt cannot be empty."})
+                continue
+
+            detected_intent = intent or agent_service.detect_intent(prompt)
+            await websocket.send_json({"status": "processing", "intent": detected_intent})
+            try:
+                result = await agent_service.process_prompt(prompt, intent=detected_intent)
+                await websocket.send_json(
+                    {"status": "completed", "intent": result.intent, "output": result.output}
+                )
+            except Exception as exc:
+                logger.exception("WebSocket processing failed.")
+                await websocket.send_json({"status": "error", "detail": str(exc)})
+    except WebSocketDisconnect:
+        logger.info("WebSocket client disconnected.")
+    except Exception as exc:
+        logger.exception("Unexpected WebSocket error.")
+        await websocket.close(code=1011, reason="Internal server error")
 
 if __name__ == "__main__":
     import uvicorn, os
