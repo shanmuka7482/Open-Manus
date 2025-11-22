@@ -5,7 +5,7 @@ interface ShiningStarsProps {
   size?: 'small' | 'medium' | 'large';
 }
 
-export const ShiningStars: React.FC<ShiningStarsProps> = ({ 
+export const ShiningStars: React.FC<ShiningStarsProps> = ({
   count = 15,
   size = 'medium'
 }) => {
@@ -23,7 +23,7 @@ export const ShiningStars: React.FC<ShiningStarsProps> = ({
     const radius = 35 + Math.random() * 15; // More controlled radius
     const x = 50 + radius * Math.cos(angle);
     const y = 50 + radius * Math.sin(angle);
-    
+
     return {
       id: i,
       x: x,
@@ -35,7 +35,7 @@ export const ShiningStars: React.FC<ShiningStarsProps> = ({
   });
 
   return (
-    <div 
+    <div
       className="relative overflow-hidden flex items-center justify-center"
       style={{ width: config.container, height: config.container }}
     >

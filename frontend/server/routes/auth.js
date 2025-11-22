@@ -53,7 +53,7 @@ router.post('/signup', async (req, res) => {
     });
   } catch (error) {
     console.error('Signup error:', error);
-    
+
     // Handle validation errors
     if (error.name === 'ValidationError') {
       const messages = Object.values(error.errors).map(err => err.message);
@@ -87,7 +87,7 @@ router.post('/login', async (req, res) => {
 
     // Find user and include password
     const user = await User.findOne({ email }).select('+password');
-    
+
     if (!user) {
       return res.status(401).json({
         success: false,
@@ -97,7 +97,7 @@ router.post('/login', async (req, res) => {
 
     // Check password
     const isPasswordValid = await user.comparePassword(password);
-    
+
     if (!isPasswordValid) {
       return res.status(401).json({
         success: false,
@@ -142,7 +142,7 @@ router.get('/me', async (req, res) => {
   try {
     // Get token from header
     const token = req.headers.authorization?.split(' ')[1];
-    
+
     if (!token) {
       return res.status(401).json({
         success: false,
@@ -153,10 +153,10 @@ router.get('/me', async (req, res) => {
     // Verify token
     const jwt = require('jsonwebtoken');
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    
+
     // Get user
     const user = await User.findById(decoded.id).select('-password');
-    
+
     if (!user) {
       return res.status(404).json({
         success: false,

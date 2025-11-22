@@ -1,10 +1,9 @@
 from typing import List, Optional, Tuple
 
 import requests
-from bs4 import BeautifulSoup
-
 from app.logger import logger
 from app.tool.search.base import SearchItem, WebSearchEngine
+from bs4 import BeautifulSoup
 
 
 ABSTRACT_MAX_LENGTH = 300

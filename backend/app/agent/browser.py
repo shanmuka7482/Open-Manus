@@ -1,13 +1,12 @@
 import json
 from typing import TYPE_CHECKING, Optional
 
-from pydantic import Field, model_validator
-
 from app.agent.toolcall import ToolCallAgent
 from app.logger import logger
 from app.prompt.browser import NEXT_STEP_PROMPT, SYSTEM_PROMPT
 from app.schema import Message, ToolChoice
 from app.tool import BrowserUseTool, Terminate, ToolCollection
+from pydantic import Field, model_validator
 
 
 # Avoid circular import if BrowserAgent needs BrowserContextHelper

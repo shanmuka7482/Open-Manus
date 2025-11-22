@@ -1,9 +1,8 @@
 from abc import ABC, abstractmethod
 from typing import Dict, List, Optional, Union
 
-from pydantic import BaseModel
-
 from app.agent.base import BaseAgent
+from pydantic import BaseModel
 
 
 class BaseFlow(BaseModel, ABC):

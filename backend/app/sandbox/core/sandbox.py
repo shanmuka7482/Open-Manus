@@ -7,12 +7,11 @@ import uuid
 from typing import Dict, Optional
 
 import docker
-from docker.errors import NotFound
-from docker.models.containers import Container
-
 from app.config import SandboxSettings
 from app.sandbox.core.exceptions import SandboxTimeoutError
 from app.sandbox.core.terminal import AsyncDockerizedTerminal
+from docker.errors import NotFound
+from docker.models.containers import Container
 
 
 class DockerSandbox:

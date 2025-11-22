@@ -160,7 +160,7 @@ wss.on('connection', (clientWs) => {
   clientWs.on('message', (message) => {
     const msgStr = message.toString();
     console.log('📩 Received from client:', msgStr);
-    
+
     if (backendWs.readyState === WebSocket.OPEN) {
       backendWs.send(msgStr);
     } else {

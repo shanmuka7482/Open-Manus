@@ -165,13 +165,13 @@ export function HomePage({ onNavigateToSandbox, continueSession }: HomePageProps
       const sessionTitle = chatMessages[0]?.content.slice(0, 50) + (chatMessages[0]?.content.length > 50 ? '...' : '');
 
       const session = {
-      id: currentSessionId,
-      title: sessionTitle,
-      messages: chatMessages,
-      createdAt: chatMessages[0]?.timestamp || new Date(),
-      lastUpdated: new Date(),
-      isDraft: isDraft
-    };
+        id: currentSessionId,
+        title: sessionTitle,
+        messages: chatMessages,
+        createdAt: chatMessages[0]?.timestamp || new Date(),
+        lastUpdated: new Date(),
+        isDraft: isDraft
+      };
 
       if (sessionIndex >= 0) {
         existingHistory[sessionIndex] = session;
@@ -324,6 +324,11 @@ export function HomePage({ onNavigateToSandbox, continueSession }: HomePageProps
     setPrompt(text);
   };
 
+  const handleGenerate = () => {
+    if (!prompt.trim()) return;
+    performGeneration(selectedOption || 'Text');
+  };
+
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
@@ -375,7 +380,7 @@ export function HomePage({ onNavigateToSandbox, continueSession }: HomePageProps
       const numbers = userInput.match(/\d+(\.\d+)?/g);
       if (numbers && numbers.length >= 2) {
         const result = parseFloat(numbers[0]) / parseFloat(numbers[1]);
-        return `${numbers[0]} ÷ ${numbers[1]} = ${result}`;
+        return `${numbers.join(' × ')} = ${result}`;
       }
       return "I can help with division! Try something like 'divide 100 by 4' or '100 / 4'";
     }
@@ -408,41 +413,7 @@ export function HomePage({ onNavigateToSandbox, continueSession }: HomePageProps
       ];
       return jokes[Math.floor(Math.random() * jokes.length)];
     }
-
-    // Default response for other inputs
-    return `I understand you want to "${userInput}". Let me help you with that! For more complex tasks, try using keywords like 'code', 'website', 'presentation', or ask me math questions!`;
-  };
-
-  const handleGenerate = () => {
-    if (!prompt.trim()) return;
-
-    // If user typed a code request, keep the existing sandbox flow
-    if (prompt.toLowerCase().includes('code')) {
-      const userMessage: ChatMessage = {
-        id: Date.now().toString(),
-        content: prompt,
-        isUser: true,
-        timestamp: new Date()
-      };
-      setChatMessages(prev => [...prev, userMessage]);
-
-      const aiMessage: ChatMessage = {
-        id: (Date.now() + 1).toString(),
-        content: "I'll help you with that code! Opening the sandbox to generate and test your code...",
-        isUser: false,
-        timestamp: new Date()
-      };
-      setChatMessages(prev => [...prev, aiMessage]);
-      setTimeout(() => {
-        if (onNavigateToSandbox) onNavigateToSandbox();
-      }, 800);
-      setPrompt('');
-      return;
-    }
-
-    // For all other content, require the user to pick a tool from the three-dots menu
-    setPendingGenerate(true);
-    setIsMoreMenuOpen(true);
+    return "I'm sorry, I don't understand that. Can you please rephrase?";
   };
 
   return (
@@ -713,6 +684,5 @@ export function HomePage({ onNavigateToSandbox, continueSession }: HomePageProps
         onTranscript={handleVoiceTranscript}
       />
     </div>
-
   );
-}  
+}

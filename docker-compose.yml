@@ -1,0 +1,88 @@
+version: '3.8'
+
+services:
+  # Backend Service - FastAPI Python Server
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: openmanus-backend
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend/config:/app/config:ro
+      - ./backend/workspace:/app/workspace
+      - ./backend/logs:/app/logs
+    environment:
+      - PYTHONUNBUFFERED=1
+      - LOG_LEVEL=INFO
+    env_file:
+      - ./backend/.env
+    networks:
+      - openmanus-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/files"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # WebSocket Server - Node.js Proxy
+  server:
+    build:
+      context: ./frontend/server
+      dockerfile: Dockerfile
+    container_name: openmanus-server
+    ports:
+      - "5000:5000"
+    environment:
+      - NODE_ENV=production
+      - BACKEND_URL=http://backend:8000
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - openmanus-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:5000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  # Frontend Service - React App with Nginx
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        - VITE_CLERK_PUBLISHABLE_KEY=${VITE_CLERK_PUBLISHABLE_KEY}
+    container_name: openmanus-frontend
+    ports:
+      - "80:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+      server:
+        condition: service_healthy
+    networks:
+      - openmanus-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+networks:
+  openmanus-network:
+    driver: bridge
+
+volumes:
+  backend-workspace:
+    driver: local
+  backend-logs:
+    driver: local

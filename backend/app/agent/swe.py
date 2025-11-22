@@ -1,10 +1,9 @@
 from typing import List
 
-from pydantic import Field
-
 from app.agent.toolcall import ToolCallAgent
 from app.prompt.swe import SYSTEM_PROMPT
 from app.tool import Bash, StrReplaceEditor, Terminate, ToolCollection
+from pydantic import Field
 
 
 class SWEAgent(ToolCallAgent):

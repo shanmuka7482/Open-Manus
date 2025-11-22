@@ -1,8 +1,7 @@
 from typing import List
 
-from googlesearch import search
-
 from app.tool.search.base import SearchItem, WebSearchEngine
+from googlesearch import search
 
 
 class GoogleSearchEngine(WebSearchEngine):

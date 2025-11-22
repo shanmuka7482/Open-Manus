@@ -1,5 +1,7 @@
 import asyncio
+
 import websockets
+
 
 async def test():
     uri = "ws://127.0.0.1:8000/generate"
@@ -14,5 +16,6 @@ async def test():
                     break
             except websockets.exceptions.ConnectionClosed:
                 break
+
 
 asyncio.run(test())

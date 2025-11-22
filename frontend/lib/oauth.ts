@@ -57,7 +57,7 @@ export const initGoogleOAuth = () => {
     script.src = 'https://accounts.google.com/gsi/client';
     script.async = true;
     script.defer = true;
-    
+
     script.onload = () => {
       if (window.google) {
         window.google.accounts.id.initialize({
@@ -69,7 +69,7 @@ export const initGoogleOAuth = () => {
         reject(new Error('Google OAuth failed to load'));
       }
     };
-    
+
     script.onerror = () => reject(new Error('Failed to load Google OAuth script'));
     document.head.appendChild(script);
   });
@@ -98,7 +98,7 @@ export const signInWithGoogle = async () => {
           if (tempContainer) {
             document.body.removeChild(tempContainer);
           }
-          
+
           if (response.credential) {
             // Decode JWT token to get user info
             try {
@@ -136,7 +136,7 @@ export const signInWithGoogle = async () => {
           container.style.padding = '20px';
           container.style.borderRadius = '8px';
           container.style.boxShadow = '0 4px 6px rgba(0,0,0,0.1)';
-          
+
           // Add close button
           const closeBtn = document.createElement('button');
           closeBtn.textContent = '×';
@@ -152,13 +152,13 @@ export const signInWithGoogle = async () => {
             reject(new Error('Sign-in cancelled'));
           };
           container.appendChild(closeBtn);
-          
+
           const buttonContainer = document.createElement('div');
           buttonContainer.id = 'google-button-container';
           container.appendChild(buttonContainer);
-          
+
           document.body.appendChild(container);
-          
+
           window.google.accounts.id.renderButton(
             buttonContainer,
             {
@@ -171,7 +171,7 @@ export const signInWithGoogle = async () => {
               width: 300,
             }
           );
-          
+
           // Set a timeout to auto-close
           setTimeout(() => {
             if (document.getElementById('google-signin-button-temp')) {
@@ -201,7 +201,7 @@ export const signInWithMicrosoft = async () => {
       const height = 600;
       const left = window.screenX + (window.outerWidth - width) / 2;
       const top = window.screenY + (window.outerHeight - height) / 2;
-      
+
       const authUrl = `https://login.microsoftonline.com/common/oauth2/v2.0/authorize?` +
         `client_id=${microsoftOAuthConfig.clientId}` +
         `&response_type=id_token token` +
@@ -219,7 +219,7 @@ export const signInWithMicrosoft = async () => {
       // Listen for message from popup
       const messageHandler = (event: MessageEvent) => {
         if (event.origin !== window.location.origin) return;
-        
+
         if (event.data.type === 'microsoft-auth-success') {
           window.removeEventListener('message', messageHandler);
           popup?.close();
@@ -262,11 +262,11 @@ export const signInWithApple = async () => {
         const script = document.createElement('script');
         script.src = 'https://appleid.cdn-apple.com/appleauth/static/jsapi/appleid/1/en_US/appleid.auth.js';
         script.async = true;
-        
+
         script.onload = () => {
           initAppleSignIn().then(resolve).catch(reject);
         };
-        
+
         script.onerror = () => reject(new Error('Failed to load Apple Sign In'));
         document.head.appendChild(script);
       } else {
@@ -292,7 +292,7 @@ const initAppleSignIn = () => {
         // Decode the identity token
         const idToken = response.authorization.id_token;
         const payload = JSON.parse(atob(idToken.split('.')[1]));
-        
+
         resolve({
           email: payload.email,
           name: response.user?.name ? `${response.user.name.firstName} ${response.user.name.lastName}` : payload.email.split('@')[0],

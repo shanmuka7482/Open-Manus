@@ -15,7 +15,10 @@ import {
   Info,
   FileCode,
   Code as CodeIcon,
-  X
+  X,
+  MessageSquare,
+  Eye,
+  Code
 } from 'lucide-react';
 
 interface SandboxPageProps {
@@ -45,13 +48,18 @@ export const SandboxPage: React.FC<SandboxPageProps> = ({ autoRun = false }) => 
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
   const [isDone, setIsDone] = useState(false);
+  const [isWaitingForInput, setIsWaitingForInput] = useState(false);
+  const [inputPrompt, setInputPrompt] = useState('');
+
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const wsRef = useRef<WebSocket | null>(null);
 
   // File Viewer State
   const [showCodePanel, setShowCodePanel] = useState(false);
   const [files, setFiles] = useState<string[]>([]);
   const [activeFile, setActiveFile] = useState<string | null>(null);
   const [fileContent, setFileContent] = useState<string>('');
+  const [isHtmlPreview, setIsHtmlPreview] = useState(false);
 
   // Load prompt if saved
   useEffect(() => {
@@ -87,6 +95,49 @@ export const SandboxPage: React.FC<SandboxPageProps> = ({ autoRun = false }) => 
     return 'info';
   };
 
+  const handleSend = () => {
+    if (!prompt.trim()) return;
+
+    if (isWaitingForInput && wsRef.current) {
+      // Send user response to the running agent
+      console.log('📨 Sending user response:', prompt);
+      const response = JSON.stringify({ type: 'user_input', content: prompt });
+      console.log('📨 Formatted response:', response);
+      wsRef.current.send(response);
+
+      // Add user message to chat
+      const userMsg: ChatMessage = {
+        id: crypto.randomUUID(),
+        role: 'user',
+        content: prompt,
+        timestamp: new Date()
+      };
+
+      // Create a new bot message for subsequent logs
+      const newBotMsgId = crypto.randomUUID();
+      const newBotMsg: ChatMessage = {
+        id: newBotMsgId,
+        role: 'bot',
+        logs: [],
+        timestamp: new Date()
+      };
+
+      setMessages(prev => [...prev, userMsg, newBotMsg]);
+
+      // Update the botMsgId ref so new logs go to the new message
+      // We need to store this in a ref or state that handleGenerate can access
+      // For now, we'll use a workaround by finding the last bot message
+
+      // Reset input state
+      setPrompt('');
+      setIsWaitingForInput(false);
+      setInputPrompt('');
+    } else {
+      // Start new generation
+      handleGenerate();
+    }
+  };
+
   const handleGenerate = async () => {
     if (!prompt.trim()) return;
 
@@ -113,25 +164,59 @@ export const SandboxPage: React.FC<SandboxPageProps> = ({ autoRun = false }) => 
 
     try {
       const ws = new WebSocket('ws://localhost:5000/ws/generate');
+      wsRef.current = ws;
 
       ws.onopen = () => {
         console.log('Connected to server');
         ws.send(prompt);
+        setPrompt(''); // Clear prompt after sending
       };
 
       ws.onmessage = (event) => {
-        const msg = event.data;
+        const rawMsg = event.data;
+
+        // Check for JSON message (Input Request)
+        try {
+          if (rawMsg.startsWith('{')) {
+            const data = JSON.parse(rawMsg);
+            console.log('📩 Received JSON message:', data);
+            if (data.type === 'input_request') {
+              console.log('❓ Input request detected:', data.content);
+              setIsWaitingForInput(true);
+              setInputPrompt(data.content);
+
+              // Add bot message with the question
+              const questionMsg: ChatMessage = {
+                id: crypto.randomUUID(),
+                role: 'bot',
+                content: data.content,
+                timestamp: new Date()
+              };
+              setMessages(prev => [...prev, questionMsg]);
+              return;
+            }
+          }
+        } catch (e) {
+          // Not JSON, treat as log string
+        }
+
+        const msg = rawMsg;
 
         if (msg === "DONE") {
           setIsGenerating(false);
           setIsDone(true);
           ws.close();
+          wsRef.current = null;
           return;
         }
 
         setMessages(prev => {
-          return prev.map(m => {
-            if (m.id === botMsgId) {
+          // Find the last bot message to append logs to
+          const lastBotIndex = prev.length - 1 - [...prev].reverse().findIndex(m => m.role === 'bot');
+
+          return prev.map((m, index) => {
+            // Only append to the last bot message, not the original botMsgId
+            if (index === lastBotIndex && m.role === 'bot') {
               const currentLogs = m.logs || [];
               const lastLog = currentLogs[currentLogs.length - 1];
               const msgType = getLogType(msg);
@@ -188,10 +273,12 @@ export const SandboxPage: React.FC<SandboxPageProps> = ({ autoRun = false }) => 
       ws.onerror = (error) => {
         console.error('WebSocket error:', error);
         setIsGenerating(false);
+        wsRef.current = null;
       };
 
       ws.onclose = () => {
         if (isGenerating) setIsGenerating(false);
+        wsRef.current = null;
       };
 
     } catch (e) {
@@ -231,6 +318,7 @@ export const SandboxPage: React.FC<SandboxPageProps> = ({ autoRun = false }) => 
 
   const handleFileClick = async (filename: string) => {
     setActiveFile(filename);
+    setIsHtmlPreview(false); // Reset preview mode when switching files
     try {
       const res = await fetch(`http://localhost:8000/files/${filename}`);
       const content = await res.text();
@@ -238,6 +326,14 @@ export const SandboxPage: React.FC<SandboxPageProps> = ({ autoRun = false }) => 
     } catch (e) {
       console.error("Failed to fetch file content", e);
     }
+  };
+
+  const isImageFile = (filename: string) => {
+    return /\.(png|jpg|jpeg|gif|webp|svg)$/i.test(filename);
+  };
+
+  const isHtmlFile = (filename: string) => {
+    return /\.html?$/i.test(filename);
   };
 
   return (
@@ -292,7 +388,14 @@ export const SandboxPage: React.FC<SandboxPageProps> = ({ autoRun = false }) => 
 
                       {msg.role === 'bot' && (
                         <div className="flex flex-col gap-3 w-full">
-                          {msg.logs?.length === 0 && isGenerating && (
+                          {/* Text Content (e.g. Questions) */}
+                          {msg.content && (
+                            <div className="bg-zinc-800/50 text-foreground px-5 py-3 rounded-2xl rounded-tl-sm shadow-sm border border-border/50">
+                              <p className="text-sm leading-relaxed">{msg.content}</p>
+                            </div>
+                          )}
+
+                          {msg.logs?.length === 0 && isGenerating && !msg.content && (
                             <div className="flex items-center gap-2 text-sm text-muted-foreground animate-pulse px-1">
                               <Loader2 className="w-3.5 h-3.5 animate-spin" />
                               <span className="font-medium">Manus is thinking...</span>
@@ -355,19 +458,27 @@ export const SandboxPage: React.FC<SandboxPageProps> = ({ autoRun = false }) => 
                   setPrompt(e.target.value);
                   localStorage.setItem('navaSandboxPrompt', e.target.value);
                 }}
-                placeholder="Describe your task..."
-                className="flex-1 bg-muted/50 border-transparent focus:bg-background focus:border-primary/20 transition-all shadow-inner"
+                placeholder={isWaitingForInput ? (inputPrompt || "Manus is asking for input...") : "Describe your task..."}
+                className={`flex-1 bg-muted/50 border-transparent focus:bg-background focus:border-primary/20 transition-all shadow-inner ${isWaitingForInput ? 'border-primary/50 ring-1 ring-primary/20' : ''
+                  }`}
                 onKeyDown={(e) => {
-                  if (e.key === 'Enter' && !isGenerating) handleGenerate();
+                  if (e.key === 'Enter' && (!isGenerating || isWaitingForInput)) handleSend();
                 }}
-                disabled={isGenerating}
+                disabled={isGenerating && !isWaitingForInput}
+                autoFocus={isWaitingForInput}
               />
               <Button
-                onClick={handleGenerate}
-                disabled={isGenerating}
+                onClick={handleSend}
+                disabled={isGenerating && !isWaitingForInput}
                 className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg hover:shadow-primary/20 transition-all px-6"
               >
-                {isGenerating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Play className="w-4 h-4 fill-current" />}
+                {isGenerating && !isWaitingForInput ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : isWaitingForInput ? (
+                  <MessageSquare className="w-4 h-4 fill-current" />
+                ) : (
+                  <Play className="w-4 h-4 fill-current" />
+                )}
               </Button>
             </div>
           </div>
@@ -375,29 +486,75 @@ export const SandboxPage: React.FC<SandboxPageProps> = ({ autoRun = false }) => 
 
         {/* Code Panel (Right Side) */}
         {showCodePanel && (
-          <div className="w-1/2 flex flex-col bg-[#1e1e1e] border-l border-border/40 animate-in slide-in-from-right-10 duration-300">
+          <div className="w-1/2 flex flex-col bg-[#1e1e1e] border-l border-border/40 animate-in slide-in-from-right-10 duration-300 min-w-0">
             {/* Header */}
-            <div className="flex items-center justify-between px-4 py-2 bg-[#252526] border-b border-[#333]">
-              <div className="flex items-center gap-2 text-sm text-gray-300">
-                <FileCode className="w-4 h-4" />
-                <span>Generated Files</span>
+            <div className="flex items-center justify-between px-4 py-2 bg-[#252526] border-b border-[#333] flex-shrink-0">
+              <div className="flex items-center gap-3 flex-1 min-w-0">
+                <div className="flex items-center gap-2 text-sm text-gray-300">
+                  <FileCode className="w-4 h-4" />
+                  <span>Generated Files</span>
+                </div>
+                {activeFile && isHtmlFile(activeFile) && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setIsHtmlPreview(!isHtmlPreview)}
+                    className="h-7 px-2 hover:bg-[#333] text-xs text-gray-300 flex items-center gap-1"
+                    title={isHtmlPreview ? 'View Code' : 'Preview HTML'}
+                  >
+                    {isHtmlPreview ? (
+                      <>
+                        <Code className="w-3 h-3" />
+                        <span>Code</span>
+                      </>
+                    ) : (
+                      <>
+                        <Eye className="w-3 h-3" />
+                        <span>Preview</span>
+                      </>
+                    )}
+                  </Button>
+                )}
               </div>
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => setShowCodePanel(false)}
-                className="h-6 w-6 p-0 hover:bg-[#333]"
+                className="h-6 w-6 p-0 hover:bg-[#333] flex-shrink-0"
               >
                 <X className="w-4 h-4" />
               </Button>
             </div>
 
             {/* Content */}
-            <div className="flex-1 overflow-auto">
+            <div className="flex-1 overflow-hidden min-h-0 min-w-0">
               {activeFile ? (
-                <pre className="p-4 text-sm font-mono text-gray-300 leading-relaxed">
-                  {fileContent}
-                </pre>
+                <>
+                  {isImageFile(activeFile) ? (
+                    <div className="h-full w-full overflow-auto p-4 flex items-center justify-center bg-[#1a1a1a]">
+                      <img
+                        src={`http://localhost:8000/files/${activeFile}`}
+                        alt={activeFile}
+                        className="max-w-full max-h-full object-contain"
+                      />
+                    </div>
+                  ) : isHtmlFile(activeFile) && isHtmlPreview ? (
+                    <div className="h-full w-full overflow-auto bg-white">
+                      <iframe
+                        srcDoc={fileContent}
+                        className="w-full h-full border-none"
+                        title="HTML Preview"
+                        sandbox="allow-scripts allow-same-origin"
+                      />
+                    </div>
+                  ) : (
+                    <div className="h-full w-full overflow-auto min-w-0">
+                      <pre className="p-4 text-sm font-mono text-gray-300 leading-relaxed whitespace-pre min-w-0 w-max">
+                        {fileContent}
+                      </pre>
+                    </div>
+                  )}
+                </>
               ) : (
                 <div className="flex items-center justify-center h-full text-gray-500 text-sm">
                   Select a file to view content
@@ -406,14 +563,14 @@ export const SandboxPage: React.FC<SandboxPageProps> = ({ autoRun = false }) => 
             </div>
 
             {/* Tabs (Bottom) */}
-            <div className="flex items-center gap-1 px-2 py-1 bg-[#252526] border-t border-[#333] overflow-x-auto">
+            <div className="flex items-center gap-1 px-2 py-1 bg-[#252526] border-t border-[#333] overflow-x-auto flex-shrink-0">
               {files.map(file => (
                 <button
                   key={file}
                   onClick={() => handleFileClick(file)}
-                  className={`px-3 py-1.5 text-xs rounded-t-md transition-colors flex items-center gap-2 ${activeFile === file
-                      ? 'bg-[#1e1e1e] text-white border-t-2 border-blue-500'
-                      : 'text-gray-400 hover:bg-[#333] hover:text-gray-200'
+                  className={`px-3 py-1.5 text-xs rounded-t-md transition-colors flex items-center gap-2 whitespace-nowrap ${activeFile === file
+                    ? 'bg-[#1e1e1e] text-white border-t-2 border-blue-500'
+                    : 'text-gray-400 hover:bg-[#333] hover:text-gray-200'
                     }`}
                 >
                   <FileCode className="w-3 h-3" />

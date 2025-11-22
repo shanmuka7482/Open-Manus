@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from './ui/button';
-import { 
-  Play, 
-  CheckCircle2, 
-  Circle, 
+import {
+  Play,
+  CheckCircle2,
+  Circle,
   Loader2,
   X,
   Monitor,
@@ -30,7 +30,7 @@ export function TaskProgress({ isOpen, onClose, onRunComplete }: TaskProgressPro
     { id: '3', title: 'Creating components and logic', status: 'pending' },
     { id: '4', title: 'Optimizing and finalizing', status: 'pending' }
   ]);
-  
+
   const [currentStepIndex, setCurrentStepIndex] = useState(-1);
   const [isCompleted, setIsCompleted] = useState(false);
 
@@ -56,7 +56,7 @@ export function TaskProgress({ isOpen, onClose, onRunComplete }: TaskProgressPro
       // Update current step to running
       setSteps(prev => prev.map((step, index) => ({
         ...step,
-        status: index === currentStepIndex ? 'running' : 
+        status: index === currentStepIndex ? 'running' :
                 index < currentStepIndex ? 'completed' : 'pending'
       })));
 
@@ -100,8 +100,8 @@ export function TaskProgress({ isOpen, onClose, onRunComplete }: TaskProgressPro
             {isCompleted && (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button 
-                    variant="outline" 
+                  <Button
+                    variant="outline"
                     size="sm"
                     className="border-border/50 hover:bg-muted/50 p-2"
                     title="Run in environment"
@@ -110,7 +110,7 @@ export function TaskProgress({ isOpen, onClose, onRunComplete }: TaskProgressPro
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-48 bg-card/95 backdrop-blur-xl border border-border/50">
-                  <DropdownMenuItem 
+                  <DropdownMenuItem
                     onClick={() => handleRunEnvironment('vscode')}
                     className="cursor-pointer hover:bg-muted/50"
                   >
@@ -123,7 +123,7 @@ export function TaskProgress({ isOpen, onClose, onRunComplete }: TaskProgressPro
                       <span>Run on VS Code</span>
                     </div>
                   </DropdownMenuItem>
-                  <DropdownMenuItem 
+                  <DropdownMenuItem
                     onClick={() => handleRunEnvironment('browser')}
                     className="cursor-pointer hover:bg-muted/50"
                   >
@@ -137,9 +137,9 @@ export function TaskProgress({ isOpen, onClose, onRunComplete }: TaskProgressPro
                 </DropdownMenuContent>
               </DropdownMenu>
             )}
-            <Button 
-              variant="ghost" 
-              size="sm" 
+            <Button
+              variant="ghost"
+              size="sm"
               onClick={onClose}
               className="p-2 hover:bg-muted/50"
             >

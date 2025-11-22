@@ -1,6 +1,4 @@
-from typing import Optional
-
-from pydantic import Field, model_validator
+from typing import Any, Callable, Optional
 
 from app.agent.browser import BrowserContextHelper
 from app.agent.toolcall import ToolCallAgent
@@ -12,6 +10,8 @@ from app.tool.image_generation import ImageGenerationTool
 from app.tool.pptx_generation import PptxGenerationTool
 from app.tool.python_execute import PythonExecute
 from app.tool.str_replace_editor import StrReplaceEditor
+from app.tool.user_input import UserInputTool
+from pydantic import Field, PrivateAttr, model_validator
 
 
 class Manus(ToolCallAgent):
@@ -29,6 +29,7 @@ class Manus(ToolCallAgent):
     max_steps: int = 20
 
     # Add general-purpose tools to the tool collection
+    # Note: UserInputTool is added via set_input_callback() method with proper callback
     available_tools: ToolCollection = Field(
         default_factory=lambda: ToolCollection(
             PythonExecute(),
@@ -44,10 +45,24 @@ class Manus(ToolCallAgent):
 
     browser_context_helper: Optional[BrowserContextHelper] = None
 
+    _input_callback: Optional[Callable[[str], Any]] = PrivateAttr(default=None)
+
     @model_validator(mode="after")
     def initialize_helper(self) -> "Manus":
         self.browser_context_helper = BrowserContextHelper(self)
         return self
+
+    def set_input_callback(self, callback: Callable[[str], Any]):
+        """Set the callback for user input and add the tool."""
+        from app.logger import logger
+
+        self._input_callback = callback
+        user_input_tool = UserInputTool(input_func=callback)
+        self.available_tools.add_tool(user_input_tool)
+        logger.info(
+            f"✅ Registered UserInputTool with callback. Tool map now has {len(self.available_tools.tool_map)} tools"
+        )
+        logger.debug(f"🔍 Available tools: {list(self.available_tools.tool_map.keys())}")
 
     async def think(self) -> bool:
         """Process current state and decide next actions with appropriate context."""

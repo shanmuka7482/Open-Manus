@@ -116,7 +116,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigateToLogin }) =
                 Welcome to Nava AI
               </h1>
               <p className="text-xl text-muted-foreground mb-8">
-                Transform your ideas into reality with our advanced AI-powered platform. 
+                Transform your ideas into reality with our advanced AI-powered platform.
                 Generate code, create applications, and innovate faster than ever before.
               </p>
               <div className="flex flex-wrap gap-4">
@@ -163,9 +163,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigateToLogin }) =
           >
             <h2 className="text-4xl font-bold mb-4">About Nava AI</h2>
             <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-              Nava AI is a next-generation platform that combines artificial intelligence 
-              with intuitive design to help developers, creators, and businesses build 
-              powerful applications faster. Our mission is to democratize AI and make 
+              Nava AI is a next-generation platform that combines artificial intelligence
+              with intuitive design to help developers, creators, and businesses build
+              powerful applications faster. Our mission is to democratize AI and make
               advanced technology accessible to everyone.
             </p>
           </motion.div>
@@ -337,8 +337,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigateToLogin }) =
                 Built for Modern Workflows
               </h2>
               <p className="text-xl text-muted-foreground mb-6">
-                Nava AI integrates seamlessly into your existing processes, enhancing 
-                productivity without disrupting your workflow. Our platform is designed 
+                Nava AI integrates seamlessly into your existing processes, enhancing
+                productivity without disrupting your workflow. Our platform is designed
                 to complement your creative process, not complicate it.
               </p>
               <div className="space-y-4">
@@ -382,7 +382,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigateToLogin }) =
                 Cutting-Edge Technology
               </h2>
               <p className="text-xl text-muted-foreground mb-6">
-                Experience the future of AI-powered development. Our advanced algorithms 
+                Experience the future of AI-powered development. Our advanced algorithms
                 and neural network architecture deliver unparalleled performance and accuracy.
               </p>
               <div className="grid grid-cols-2 gap-4">
@@ -505,9 +505,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigateToLogin }) =
             </div>
             <h3 className="text-2xl font-semibold mb-4">Nava AI Team</h3>
             <p className="text-muted-foreground text-lg mb-6">
-              We're a team of engineers, designers, and AI researchers committed to 
-              creating tools that empower creators and developers worldwide. Our diverse 
-              backgrounds in machine learning, software engineering, and product design 
+              We're a team of engineers, designers, and AI researchers committed to
+              creating tools that empower creators and developers worldwide. Our diverse
+              backgrounds in machine learning, software engineering, and product design
               come together to build experiences that are both powerful and accessible.
             </p>
             <div className="flex justify-center gap-3">
@@ -538,7 +538,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigateToLogin }) =
             </h2>
             <p className="text-xl text-muted-foreground mb-8">
               Join thousands of developers and creators using Nava AI to build the future
-              
+
             </p>
             <button
               onClick={onNavigateToLogin}
@@ -563,4 +563,4 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigateToLogin }) =
       </footer>
     </div>
   );
-}; 
+};

@@ -40,7 +40,7 @@ export const VoiceModal: React.FC<VoiceModalProps> = ({ isOpen, onClose, onTrans
 
     // Check if browser supports speech recognition
     const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-    
+
     if (!SpeechRecognition) {
       setError('Speech recognition is not supported in your browser. Please use Chrome, Edge, or Safari.');
       return;
@@ -82,7 +82,7 @@ export const VoiceModal: React.FC<VoiceModalProps> = ({ isOpen, onClose, onTrans
 
         recognition.onerror = (event: any) => {
           console.error('Speech recognition error:', event.error);
-          
+
           if (event.error === 'not-allowed') {
             setPermissionDenied(true);
             setError('Microphone access was denied. Please allow microphone access in your browser settings.');
@@ -119,7 +119,7 @@ export const VoiceModal: React.FC<VoiceModalProps> = ({ isOpen, onClose, onTrans
         };
 
         recognitionRef.current = recognition;
-        
+
         try {
           recognition.start();
         } catch (e) {
@@ -136,7 +136,7 @@ export const VoiceModal: React.FC<VoiceModalProps> = ({ isOpen, onClose, onTrans
     return () => {
       shouldRestart = false;
       setIsListening(false);
-      
+
       if (recognitionRef.current) {
         try {
           recognitionRef.current.stop();
@@ -168,15 +168,15 @@ export const VoiceModal: React.FC<VoiceModalProps> = ({ isOpen, onClose, onTrans
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       streamRef.current = stream;
-      
+
       const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
       const analyser = audioContext.createAnalyser();
       const microphone = audioContext.createMediaStreamSource(stream);
-      
+
       analyser.fftSize = 256;
       analyser.smoothingTimeConstant = 0.8;
       microphone.connect(analyser);
-      
+
       audioContextRef.current = audioContext;
       analyserRef.current = analyser;
 
@@ -197,7 +197,7 @@ export const VoiceModal: React.FC<VoiceModalProps> = ({ isOpen, onClose, onTrans
     } catch (error: any) {
       console.error('Error accessing microphone:', error);
       setPermissionDenied(true);
-      
+
       if (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError') {
         setError('Microphone access was denied. Please allow microphone access in your browser settings.');
       } else if (error.name === 'NotFoundError') {
@@ -263,8 +263,8 @@ export const VoiceModal: React.FC<VoiceModalProps> = ({ isOpen, onClose, onTrans
                     {useTextInput || permissionDenied ? 'Text Input' : 'Voice Input'}
                   </h2>
                   <p className="text-sm text-muted-foreground">
-                    {useTextInput || permissionDenied 
-                      ? 'Type your message' 
+                    {useTextInput || permissionDenied
+                      ? 'Type your message'
                       : (isListening ? 'Listening...' : 'Initializing...')
                     }
                   </p>
@@ -344,10 +344,10 @@ export const VoiceModal: React.FC<VoiceModalProps> = ({ isOpen, onClose, onTrans
                   }}
                 />
                 <span className="text-sm text-muted-foreground">
-                  {permissionDenied 
+                  {permissionDenied
                     ? 'Microphone access needed - use text input below'
-                    : isListening 
-                      ? 'Listening to your voice...' 
+                    : isListening
+                      ? 'Listening to your voice...'
                       : 'Preparing...'}
                 </span>
               </div>
@@ -360,7 +360,7 @@ export const VoiceModal: React.FC<VoiceModalProps> = ({ isOpen, onClose, onTrans
                     <span className="text-xs text-muted-foreground">Text Input Mode</span>
                   </div>
                 )}
-                
+
                 {(permissionDenied || useTextInput) ? (
                   <textarea
                     value={transcript}

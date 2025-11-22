@@ -12,20 +12,20 @@ export function MobileAppPreview({ isOpen, onClose }: MobileAppPreviewProps) {
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
       <div className="relative">
         {/* Close button */}
-        <button 
+        <button
           onClick={onClose}
           className="absolute -top-10 -right-2 p-2 text-white hover:text-gray-300 transition-colors z-10"
         >
           <X className="w-6 h-6" />
         </button>
-        
+
         {/* iPhone Frame */}
         <div className="relative w-[375px] h-[812px] bg-black rounded-[55px] p-2 shadow-2xl">
           {/* iPhone Screen */}
           <div className="w-full h-full bg-white rounded-[45px] overflow-hidden relative">
             {/* iPhone Notch */}
             <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-[154px] h-[34px] bg-black rounded-b-3xl z-10"></div>
-            
+
             {/* Status Bar */}
             <div className="relative z-20 flex justify-between items-center px-8 pt-3 pb-2 bg-white">
               <div className="text-sm font-semibold text-black">9:41</div>
@@ -35,7 +35,7 @@ export function MobileAppPreview({ isOpen, onClose }: MobileAppPreviewProps) {
                 <Battery className="w-5 h-3 text-black" />
               </div>
             </div>
-            
+
             {/* App Content */}
             <div className="h-full bg-gradient-to-br from-violet-50 to-purple-50 px-4 pb-8">
               {/* App Header */}
@@ -46,12 +46,12 @@ export function MobileAppPreview({ isOpen, onClose }: MobileAppPreviewProps) {
                   </svg>
                 </div>
               </div>
-              
+
               <div className="text-center mb-8">
                 <h1 className="text-2xl font-bold text-gray-900 mb-2">Nava AI</h1>
                 <p className="text-gray-600">Your AI Assistant</p>
               </div>
-              
+
               {/* Quick Actions */}
               <div className="space-y-4 mb-8">
                 <div className="bg-white/70 backdrop-blur-sm rounded-2xl p-4 shadow-sm border border-white/50">
@@ -67,7 +67,7 @@ export function MobileAppPreview({ isOpen, onClose }: MobileAppPreviewProps) {
                     </div>
                   </div>
                 </div>
-                
+
                 <div className="bg-white/70 backdrop-blur-sm rounded-2xl p-4 shadow-sm border border-white/50">
                   <div className="flex items-center space-x-3">
                     <div className="w-10 h-10 bg-[#7B61FF]/10 rounded-xl flex items-center justify-center">
@@ -81,7 +81,7 @@ export function MobileAppPreview({ isOpen, onClose }: MobileAppPreviewProps) {
                     </div>
                   </div>
                 </div>
-                
+
                 <div className="bg-white/70 backdrop-blur-sm rounded-2xl p-4 shadow-sm border border-white/50">
                   <div className="flex items-center space-x-3">
                     <div className="w-10 h-10 bg-[#7B61FF]/10 rounded-xl flex items-center justify-center">
@@ -97,7 +97,7 @@ export function MobileAppPreview({ isOpen, onClose }: MobileAppPreviewProps) {
                   </div>
                 </div>
               </div>
-              
+
               {/* Bottom Navigation */}
               <div className="absolute bottom-8 left-4 right-4">
                 <div className="bg-white/80 backdrop-blur-xl rounded-2xl p-2 shadow-lg border border-white/50">

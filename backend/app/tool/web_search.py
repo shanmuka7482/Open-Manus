@@ -2,10 +2,6 @@ import asyncio
 from typing import Any, Dict, List, Optional
 
 import requests
-from bs4 import BeautifulSoup
-from pydantic import BaseModel, ConfigDict, Field, model_validator
-from tenacity import retry, stop_after_attempt, wait_exponential
-
 from app.config import config
 from app.logger import logger
 from app.tool.base import BaseTool, ToolResult
@@ -17,6 +13,9 @@ from app.tool.search import (
     WebSearchEngine,
 )
 from app.tool.search.base import SearchItem
+from bs4 import BeautifulSoup
+from pydantic import BaseModel, ConfigDict, Field, model_validator
+from tenacity import retry, stop_after_attempt, wait_exponential
 
 
 class SearchResult(BaseModel):

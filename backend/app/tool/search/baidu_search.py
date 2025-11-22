@@ -1,8 +1,7 @@
 from typing import List
 
-from baidusearch.baidusearch import search
-
 from app.tool.search.base import SearchItem, WebSearchEngine
+from baidusearch.baidusearch import search
 
 
 class BaiduSearchEngine(WebSearchEngine):

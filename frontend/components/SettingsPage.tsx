@@ -4,13 +4,13 @@ import { Input } from './ui/input';
 import { Label } from './ui/label';
 import { Switch } from './ui/switch';
 import { Separator } from './ui/separator';
-import { 
-  User, 
-  Bell, 
-  Palette, 
-  Shield, 
-  Database, 
-  Mic, 
+import {
+  User,
+  Bell,
+  Palette,
+  Shield,
+  Database,
+  Mic,
   MessageSquare,
   Monitor,
   Moon,
@@ -29,22 +29,22 @@ export function SettingsPage() {
     // Profile settings
     displayName: 'Yeswanth Kosuri',
     email: 'yeswanth@example.com',
-    
+
     // Notification settings
     emailNotifications: true,
     pushNotifications: true,
     soundNotifications: true,
-    
+
     // Voice settings
     voiceEnabled: true,
     autoTranscribe: true,
     voiceLanguage: 'en-US',
-    
+
     // Chat settings
     saveHistory: true,
     autoSave: true,
     messagePreview: true,
-    
+
     // Privacy settings
     dataCollection: false,
     analytics: false,
@@ -62,7 +62,7 @@ export function SettingsPage() {
       exportDate: new Date().toISOString(),
       version: '1.0'
     };
-    
+
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -72,7 +72,7 @@ export function SettingsPage() {
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-    
+
     toast.success('Settings exported successfully');
   };
 
@@ -104,7 +104,7 @@ export function SettingsPage() {
                 <p className="text-sm text-muted-foreground">Manage your personal information</p>
               </div>
             </div>
-            
+
             <div className="space-y-4">
               <div>
                 <Label htmlFor="displayName">Display Name</Label>
@@ -139,7 +139,7 @@ export function SettingsPage() {
                 <p className="text-sm text-muted-foreground">Customize the look and feel</p>
               </div>
             </div>
-            
+
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-3">
                 {theme === 'light' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
@@ -167,7 +167,7 @@ export function SettingsPage() {
                 <p className="text-sm text-muted-foreground">Control how you receive notifications</p>
               </div>
             </div>
-            
+
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <div>
@@ -179,7 +179,7 @@ export function SettingsPage() {
                   onCheckedChange={(checked) => handleSettingChange('emailNotifications', checked)}
                 />
               </div>
-              
+
               <div className="flex items-center justify-between">
                 <div>
                   <Label>Push Notifications</Label>
@@ -190,7 +190,7 @@ export function SettingsPage() {
                   onCheckedChange={(checked) => handleSettingChange('pushNotifications', checked)}
                 />
               </div>
-              
+
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-2">
                   <Volume2 className="w-4 h-4" />
@@ -218,7 +218,7 @@ export function SettingsPage() {
                 <p className="text-sm text-muted-foreground">Configure voice interaction settings</p>
               </div>
             </div>
-            
+
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <div>
@@ -230,7 +230,7 @@ export function SettingsPage() {
                   onCheckedChange={(checked) => handleSettingChange('voiceEnabled', checked)}
                 />
               </div>
-              
+
               <div className="flex items-center justify-between">
                 <div>
                   <Label>Auto Transcribe</Label>
@@ -255,7 +255,7 @@ export function SettingsPage() {
                 <p className="text-sm text-muted-foreground">Manage conversation settings</p>
               </div>
             </div>
-            
+
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <div>
@@ -267,7 +267,7 @@ export function SettingsPage() {
                   onCheckedChange={(checked) => handleSettingChange('saveHistory', checked)}
                 />
               </div>
-              
+
               <div className="flex items-center justify-between">
                 <div>
                   <Label>Auto Save</Label>
@@ -292,7 +292,7 @@ export function SettingsPage() {
                 <p className="text-sm text-muted-foreground">Control your data and privacy</p>
               </div>
             </div>
-            
+
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <div>
@@ -304,7 +304,7 @@ export function SettingsPage() {
                   onCheckedChange={(checked) => handleSettingChange('dataCollection', checked)}
                 />
               </div>
-              
+
               <div className="flex items-center justify-between">
                 <div>
                   <Label>Analytics</Label>
@@ -329,7 +329,7 @@ export function SettingsPage() {
                 <p className="text-sm text-muted-foreground">Export or clear your data</p>
               </div>
             </div>
-            
+
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <div>
@@ -341,9 +341,9 @@ export function SettingsPage() {
                   Export
                 </Button>
               </div>
-              
+
               <Separator />
-              
+
               <div className="flex items-center justify-between">
                 <div>
                   <Label className="text-destructive">Clear All Data</Label>

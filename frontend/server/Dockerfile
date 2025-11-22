@@ -1,0 +1,24 @@
+# WebSocket Server Dockerfile for OpenManus
+FROM node:18-alpine
+
+# Set working directory
+WORKDIR /app
+
+# Copy package files
+COPY package*.json ./
+
+# Install dependencies
+RUN npm ci --only=production
+
+# Copy server code
+COPY . .
+
+# Expose port
+EXPOSE 5000
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=10s --retries=3 \
+    CMD wget --quiet --tries=1 --spider http://localhost:5000/health || exit 1
+
+# Run the server
+CMD ["node", "index.js"]

@@ -1,11 +1,10 @@
 from abc import ABC, abstractmethod
 from typing import Optional
 
-from pydantic import Field
-
 from app.agent.base import BaseAgent
 from app.llm import LLM
 from app.schema import AgentState, Memory
+from pydantic import Field
 
 
 class ReActAgent(BaseAgent, ABC):

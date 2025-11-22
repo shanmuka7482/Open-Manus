@@ -33,7 +33,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       root.setAttribute('data-theme', 'light');
     }
     localStorage.setItem('nava-ai-theme', theme);
-    
+
     // Force re-render of all elements
     document.body.style.colorScheme = theme === 'dark' ? 'dark' : 'light';
   }, [theme]);

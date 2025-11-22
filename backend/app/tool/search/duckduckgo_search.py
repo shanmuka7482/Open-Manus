@@ -1,8 +1,7 @@
 from typing import List
 
-from duckduckgo_search import DDGS
-
 from app.tool.search.base import SearchItem, WebSearchEngine
+from duckduckgo_search import DDGS
 
 
 class DuckDuckGoSearchEngine(WebSearchEngine):

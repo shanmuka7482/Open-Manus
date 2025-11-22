@@ -7,8 +7,8 @@ interface AnimatedSphereProps {
   size?: 'small' | 'medium' | 'large';
 }
 
-export const AnimatedSphere: React.FC<AnimatedSphereProps> = ({ 
-  voiceMode = false, 
+export const AnimatedSphere: React.FC<AnimatedSphereProps> = ({
+  voiceMode = false,
   audioLevel = 0,
   size = 'large'
 }) => {

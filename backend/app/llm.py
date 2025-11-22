@@ -2,6 +2,17 @@ import math
 from typing import Dict, List, Optional, Union
 
 import tiktoken
+from app.bedrock import BedrockClient
+from app.config import LLMSettings, config
+from app.exceptions import TokenLimitExceeded
+from app.logger import logger  # Assuming a logger is set up in your app
+from app.schema import (
+    ROLE_VALUES,
+    TOOL_CHOICE_TYPE,
+    TOOL_CHOICE_VALUES,
+    Message,
+    ToolChoice,
+)
 from openai import (
     APIError,
     AsyncAzureOpenAI,
@@ -16,18 +27,6 @@ from tenacity import (
     retry_if_exception_type,
     stop_after_attempt,
     wait_random_exponential,
-)
-
-from app.bedrock import BedrockClient
-from app.config import LLMSettings, config
-from app.exceptions import TokenLimitExceeded
-from app.logger import logger  # Assuming a logger is set up in your app
-from app.schema import (
-    ROLE_VALUES,
-    TOOL_CHOICE_TYPE,
-    TOOL_CHOICE_VALUES,
-    Message,
-    ToolChoice,
 )
 
 
@@ -176,6 +175,8 @@ class TokenCounter:
             total_tokens += tokens
 
         return total_tokens
+
+
 class LLM:
     _instances: Dict[str, "LLM"] = {}
 

@@ -45,7 +45,7 @@ router.delete("/sessions/:id", async (req, res) => {
 router.post("/sessions/:id/execute", async (req, res) => {
   try {
     const { language, code } = req.body;
-    const response = await axios.post(`${SANDBOX_BASE_URL}/sessions/${req.params.id}/execute`, 
+    const response = await axios.post(`${SANDBOX_BASE_URL}/sessions/${req.params.id}/execute`,
       { language, code },
       { headers: { "Content-Type": "application/json" } }
     );

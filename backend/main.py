@@ -1,4 +1,11 @@
 import asyncio
+import sys
+
+
+# Fix for Windows: Use ProactorEventLoop to support subprocess operations
+# This is required for Playwright to launch browsers on Windows
+if sys.platform == "win32":
+    asyncio.set_event_loop_policy(asyncio.WindowsProactorEventLoopPolicy())
 
 from app.agent.manus import Manus
 from app.logger import logger

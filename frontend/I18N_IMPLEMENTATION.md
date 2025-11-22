@@ -105,11 +105,11 @@ const languages = [
 
 export function LanguageSwitcher() {
   const { i18n } = useTranslation();
-  
+
   const changeLanguage = (languageCode: string) => {
     i18n.changeLanguage(languageCode);
   };
-  
+
   // Component implementation...
 }
 ```
@@ -121,7 +121,7 @@ import { useTranslation } from 'react-i18next';
 
 export function MyComponent() {
   const { t } = useTranslation();
-  
+
   return (
     <div>
       <h1>{t('landing.title')}</h1>
@@ -334,10 +334,10 @@ app.post('/api/auth/login', (req, res) => {
 // Example test for language switching
 test('should switch language correctly', () => {
   const { getByText } = render(<LanguageSwitcher />);
-  
+
   fireEvent.click(getByText('हिन्दी'));
   expect(i18n.language).toBe('hi');
-  
+
   fireEvent.click(getByText('English'));
   expect(i18n.language).toBe('en');
 });
