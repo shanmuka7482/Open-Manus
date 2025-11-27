@@ -18,7 +18,8 @@ import {
   X,
   MessageSquare,
   Eye,
-  Code
+  Code,
+  Download
 } from 'lucide-react';
 
 interface SandboxPageProps {
@@ -319,10 +320,33 @@ export const SandboxPage: React.FC<SandboxPageProps> = ({ autoRun = false }) => 
   const handleFileClick = async (filename: string) => {
     setActiveFile(filename);
     setIsHtmlPreview(false); // Reset preview mode when switching files
+
+    if (isPptxFile(filename)) {
+      setFileContent(''); // Clear content for binary files
+      return;
+    }
+
     try {
       const res = await fetch(`http://localhost:8000/files/${filename}`);
       const content = await res.text();
-      setFileContent(content);
+
+      if (isReactFile(filename)) {
+        // Try to fetch index.css or App.css
+        let cssContent = '';
+        try {
+          const cssRes = await fetch(`http://localhost:8000/files/index.css`);
+          if (cssRes.ok) cssContent = await cssRes.text();
+        } catch (e) { /* ignore */ }
+
+        // If preview is active, update it
+        if (isHtmlPreview) {
+          setFileContent(getReactPreviewContent(content, cssContent));
+        } else {
+          setFileContent(content);
+        }
+      } else {
+        setFileContent(content);
+      }
     } catch (e) {
       console.error("Failed to fetch file content", e);
     }
@@ -334,6 +358,66 @@ export const SandboxPage: React.FC<SandboxPageProps> = ({ autoRun = false }) => 
 
   const isHtmlFile = (filename: string) => {
     return /\.html?$/i.test(filename);
+  };
+
+  const isPptxFile = (filename: string) => {
+    return /\.pptx$/i.test(filename);
+  };
+
+  const isReactFile = (filename: string) => {
+    return /\.(jsx|tsx)$/i.test(filename);
+  };
+
+  const getReactPreviewContent = (code: string, css: string = '') => {
+    return `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <meta charset="UTF-8" />
+          <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+          <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+          <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+          <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+          <script src="https://cdn.tailwindcss.com"></script>
+          <style>
+            ${css}
+            body { margin: 0; font-family: sans-serif; }
+          </style>
+        </head>
+        <body>
+          <div id="root"></div>
+          <script type="text/babel">
+            // Mock exports/imports for standalone execution
+            const exports = {};
+            const require = (module) => {
+              if (module === 'react') return React;
+              if (module === 'react-dom/client') return ReactDOM;
+              if (module === 'lucide-react') return {}; // Mock lucide
+              return {};
+            };
+
+            // Helper to handle default exports
+            function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+            try {
+              ${code.replace(/import\s+.*?from\s+['"].*?['"];?/g, '') // Naive strip imports
+        .replace(/export\s+default\s+/, 'const App = ') // Handle default export
+        .replace(/export\s+/, '')} // Handle named exports
+
+              const root = ReactDOM.createRoot(document.getElementById('root'));
+              // Try to find the component to render (assuming App or the last defined function)
+              if (typeof App !== 'undefined') {
+                root.render(<App />);
+              } else {
+                root.render(<div className="p-4 text-red-500">Could not find 'App' component to render. Ensure you export default App.</div>);
+              }
+            } catch (err) {
+              document.getElementById('root').innerHTML = '<div class="text-red-500 p-4"><h3 class="font-bold">Preview Error:</h3><pre>' + err.message + '</pre></div>';
+            }
+          </script>
+        </body>
+      </html>
+    `;
   };
 
   return (
@@ -494,13 +578,39 @@ export const SandboxPage: React.FC<SandboxPageProps> = ({ autoRun = false }) => 
                   <FileCode className="w-4 h-4" />
                   <span>Generated Files</span>
                 </div>
-                {activeFile && isHtmlFile(activeFile) && (
+                {activeFile && (isHtmlFile(activeFile) || isReactFile(activeFile)) && (
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => setIsHtmlPreview(!isHtmlPreview)}
+                    onClick={async () => {
+                      const newPreviewState = !isHtmlPreview;
+                      setIsHtmlPreview(newPreviewState);
+
+                      // If switching TO preview mode and it's a React file, we need to generate the preview content
+                      if (newPreviewState && isReactFile(activeFile!) && activeFile) {
+                        try {
+                          const res = await fetch(`http://localhost:8000/files/${activeFile}`);
+                          const code = await res.text();
+
+                          let cssContent = '';
+                          try {
+                            const cssRes = await fetch(`http://localhost:8000/files/index.css`);
+                            if (cssRes.ok) cssContent = await cssRes.text();
+                          } catch (e) { /* ignore */ }
+
+                          setFileContent(getReactPreviewContent(code, cssContent));
+                        } catch (e) {
+                          console.error("Error generating preview", e);
+                        }
+                      } else if (!newPreviewState && activeFile) {
+                        // Switching back to code view, fetch raw content
+                        const res = await fetch(`http://localhost:8000/files/${activeFile}`);
+                        const content = await res.text();
+                        setFileContent(content);
+                      }
+                    }}
                     className="h-7 px-2 hover:bg-[#333] text-xs text-gray-300 flex items-center gap-1"
-                    title={isHtmlPreview ? 'View Code' : 'Preview HTML'}
+                    title={isHtmlPreview ? 'View Code' : 'Preview'}
                   >
                     {isHtmlPreview ? (
                       <>
@@ -538,18 +648,35 @@ export const SandboxPage: React.FC<SandboxPageProps> = ({ autoRun = false }) => 
                         className="max-w-full max-h-full object-contain"
                       />
                     </div>
-                  ) : isHtmlFile(activeFile) && isHtmlPreview ? (
+                  ) : (isHtmlFile(activeFile) || isReactFile(activeFile)) && isHtmlPreview ? (
                     <div className="h-full w-full overflow-auto bg-white">
                       <iframe
                         srcDoc={fileContent}
                         className="w-full h-full border-none"
-                        title="HTML Preview"
+                        title="Preview"
                         sandbox="allow-scripts allow-same-origin"
                       />
                     </div>
+                  ) : isPptxFile(activeFile) ? (
+                    <div className="h-full w-full flex flex-col items-center justify-center gap-4 p-6 text-center">
+                      <div className="p-4 bg-primary/10 rounded-full">
+                        <FileCode className="w-12 h-12 text-primary" />
+                      </div>
+                      <div>
+                        <h3 className="text-lg font-medium text-foreground">PowerPoint Presentation</h3>
+                        <p className="text-sm text-muted-foreground mt-1">This file cannot be previewed directly.</p>
+                      </div>
+                      <Button
+                        onClick={() => window.open(`http://localhost:8000/files/${activeFile}`, '_blank')}
+                        className="gap-2"
+                      >
+                        <Download className="w-4 h-4" />
+                        Download File
+                      </Button>
+                    </div>
                   ) : (
                     <div className="h-full w-full overflow-auto min-w-0">
-                      <pre className="p-4 text-sm font-mono text-gray-300 leading-relaxed whitespace-pre min-w-0 w-max">
+                      <pre className="p-4 text-sm font-mono text-gray-300 leading-relaxed whitespace-pre-wrap break-words min-w-0">
                         {fileContent}
                       </pre>
                     </div>
