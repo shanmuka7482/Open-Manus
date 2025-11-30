@@ -86,6 +86,7 @@ export const SandboxPage: React.FC<SandboxPageProps> = ({ autoRun = false }) => 
   const isPdfFile = (filename: string) => filename.toLowerCase().endsWith('.pdf');
   const isDocxFile = (filename: string) => filename.toLowerCase().endsWith('.docx');
   const isBinaryFile = (filename: string) => /\.(xlsx|xls|zip|tar|gz|7z|exe|bin)$/i.test(filename);
+  const isNotebookFile = (filename: string) => filename.toLowerCase().endsWith('.ipynb');
   const isImageFile = (filename: string) => /\.(png|jpg|jpeg|gif|webp|svg)$/i.test(filename);
   const isHtmlFile = (filename: string) => /\.html?$/i.test(filename);
   const isReactFile = (filename: string) => /\.(jsx|tsx)$/i.test(filename);
@@ -342,11 +343,30 @@ export const SandboxPage: React.FC<SandboxPageProps> = ({ autoRun = false }) => 
     }
   };
 
+  const handleDownload = async (filename: string) => {
+    try {
+      const response = await fetch(`http://localhost:8000/files/${filename}`);
+      if (!response.ok) throw new Error('Download failed');
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (e) {
+      console.error("Download error:", e);
+    }
+  };
+
   const handleFileClick = async (filename: string) => {
     setActiveFile(filename);
     setIsHtmlPreview(false); // Reset preview mode when switching files
 
-    if (isPptxFile(filename) || isBinaryFile(filename)) {
+    if (isPptxFile(filename) || isBinaryFile(filename) || isNotebookFile(filename)) {
       setFileContent(''); // Clear content for binary files
       return;
     }
@@ -674,7 +694,7 @@ export const SandboxPage: React.FC<SandboxPageProps> = ({ autoRun = false }) => 
                               sandbox="allow-scripts allow-same-origin"
                             />
                           </div>
-                        ) : isPptxFile(activeFile) || isDocxFile(activeFile) || isBinaryFile(activeFile) ? (
+                        ) : isPptxFile(activeFile) || isDocxFile(activeFile) || isBinaryFile(activeFile) || isNotebookFile(activeFile) ? (
                           <div className="h-full w-full flex flex-col items-center justify-center gap-4 p-6 text-center">
                             <div className="p-4 bg-primary/10 rounded-full">
                               <FileCode className="w-12 h-12 text-primary" />
@@ -683,12 +703,13 @@ export const SandboxPage: React.FC<SandboxPageProps> = ({ autoRun = false }) => 
                               <h3 className="text-lg font-medium text-foreground">
                                 {isPptxFile(activeFile) ? 'PowerPoint Presentation' :
                                   isDocxFile(activeFile) ? 'Word Document' :
-                                    'Binary File'}
+                                    isNotebookFile(activeFile) ? 'Jupyter Notebook' :
+                                      'Binary File'}
                               </h3>
                               <p className="text-sm text-muted-foreground mt-1">This file cannot be previewed directly.</p>
                             </div>
                             <Button
-                              onClick={() => window.open(`http://localhost:8000/files/${activeFile}`, '_blank')}
+                              onClick={() => handleDownload(activeFile)}
                               className="gap-2"
                             >
                               <Download className="w-4 h-4" />

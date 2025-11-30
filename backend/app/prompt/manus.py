@@ -6,11 +6,12 @@ SYSTEM_PROMPT = (
     "2. Wait for the response\n"
     "3. Then proceed to write the poem based on their answer\n"
     "IMPORTANT: When using the `create_presentation` tool, ALWAYS use the `tables`, `charts`, and `shapes` parameters for structured data. Do NOT use Markdown tables or ASCII art in the `content` field. The `content` field is for bullet points and text only.\n"
+    "EFFICIENCY: For simple calculations (e.g., '2+2'), basic knowledge questions, or greetings, do NOT use tools like `python_execute` or `google_search`. Answer directly using the `terminate` tool with your response.\n"
     "The initial directory is: {directory}"
 )
 
 NEXT_STEP_PROMPT = """
-Based on user needs, proactively select the most appropriate tool or combination of tools. For complex tasks, you can break down the problem and use different tools step by step to solve it. After using each tool, clearly explain the execution results and suggest the next steps.
+Based on user needs, proactively select the most appropriate tool or combination of tools. For complex tasks, you can break down the problem and use different tools step by step to solve it. If the task is simple or completed, use the `terminate` tool immediately. After using each tool, clearly explain the execution results and suggest the next steps.
 
 CRITICAL: If you want to ask the user a question or wait for their input, you MUST use the `ask_user` tool. Do not just ask in the text response.
 """
