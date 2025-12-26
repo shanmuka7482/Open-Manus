@@ -161,6 +161,10 @@ Once running at `http://localhost:5173`, try these prompts to test Nava's full r
 
 We welcome contributions! Please fork the repository and submit a Pull Request.
 
+<a href="https://github.com/shanmuka7482/Open-Manus/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=shanmuka7482/Open-Manus" />
+</a>
+
 ---
 
 ## 📝 License
