@@ -14,84 +14,84 @@
 
 ## ⚡ Overview
 
-**Nava AI** bridges the gap between powerful Python-based AI logic and modern React frontends. It is designed for developers who need a production-ready environment for:
-*   **Conversational Agents** that can see, hear, and act.
-*   **Task Automation** spanning file systems, browsers, and APIs.
-*   **Interactive AI Experiences** with real-time feedback and visualization.
+**Nava AI** is a powerful autonomous agent platform that combines a robust Python backend with a sleek React frontend. It allows you to run a highly capable AI agent that can write code, analyze data, generate documents, and search the web—all within a secure, sandboxed environment.
+
+Designed for developers and power users, **Nava AI** bridges the gap between chat interfaces and real-world task automation.
 
 ---
 
-## ✨ Key Features
+## ✨ Key Capabilities
 
-| **Core Capabilities** | **Frontend Experience** | **Backend Power** |
+| **Core Skills** | **Creative & Data** | **Productivity** |
 | :--- | :--- | :--- |
-| 🧠 **Multi-Tool Agents**<br>Python execution, web browsing, file editing | 🎨 **Modern UI**<br>React 18 + TypeScript + Tailwind CSS | 🚀 **FastAPI Server**<br>High-performance async architecture |
-| 🛠️ **Sandbox Environment**<br>Safe, real-time code execution | 🌓 **Theming**<br>Dark/Light mode support | 🔌 **MCP Support**<br>Model Context Protocol integration |
-| 🗣️ **Human-in-the-Loop**<br>Interactive user input & feedback | 📄 **Smart Viewers**<br>Live preview for HTML, Images, & Code | 🤖 **LLM Flexibility**<br>OpenAI, Azure, Bedrock, & more |
-| 📂 **Workspace Manager**<br>Full file system control | 🔐 **Secure Auth**<br>Integrated Clerk authentication | 🕷️ **Browser Automation**<br>Headless Playwright control |
+| 🐍 **Python Execution**<br>Sandboxed code running for logic & math | 🖼️ **Image Generation**<br>Create AI images on demand | � **Document Generator**<br>Create PDF, DOCX, & Excel files |
+| 🌐 **Smart Web Search**<br>Powered by Tavily for real-time answers | � **Jupyter Notebooks**<br>Interactive data analysis & plotting | 🗣️ **Human-in-the-Loop**<br>Asks for clarification when needed |
+| �️ **File Operations**<br>Read, write, and patch files safely | �️ **Presentation Mode**<br>Generate professional PPTX slides | � **Session Summaries**<br>Auto-summarizes completed tasks |
 
 ---
 
 ## 🏗️ Architecture
 
-Nava AI uses a clean, separated architecture to ensure scalability and maintainability.
+Nava AI uses a modular "Tool-Use" architecture where the agent thinks, plans, and selects the right tool for the job.
 
 ```mermaid
 graph LR
     User[Web Interface] <-->|WebSocket| Proxy[Node.js Proxy]
     Proxy <-->|WebSocket| API[FastAPI Backend]
     API <--> Agent[Nava Agent]
-    Agent <--> Tools[Tools]
+    Agent -- Selects Tool --> Tools[Tool Collection]
     Tools -->|Execute| Sandbox[Sandbox Environment]
+    Sandbox -->|Result| Agent
 ```
 
 #### Directory Structure
 *   `frontend/` - **React Application** (Vite, Radix UI)
 *   `backend/` - **Python Environment** (FastAPI, LangChain)
-*   `backend/workspace/` - **Sandboxed Area** for agent outputs
+*   `backend/workspace/` - **Sandboxed Area** where the agent creates your files
 
 ---
 
 ## 🚀 Quick Start Guide
 
-### 1. Backend Setup (The Brain)
+### 1. Backend Setup
 
 ```bash
 # Clone the repo
 git clone https://github.com/mannaandpoem/OpenManus.git
 cd OpenManus/backend
 
-# Create environment (Python 3.12+)
-python -m venv .venv
+# Create environment (Python 3.12 Recommended)
+# Using uv (faster):
+curl -LsSf https://astral.sh/uv/install.sh | sh
+uv venv --python 3.12
 source .venv/bin/activate  # Windows: .venv\Scripts\activate
+uv pip install -r requirements.txt
 
-# Install dependencies
-pip install -r requirements.txt
-playwright install
-
-# Configure
+# Configure API Keys
 cp config/config.example.toml config/config.toml
-# (Add your API keys to config.toml)
+# Edit config.toml: Add your OpenAI/Anthropic and Tavily keys!
 
 # Start Server
 python start_server.py
 ```
 
-### 2. Frontend Setup (The Face)
+### 2. Frontend Setup
 
 ```bash
 # In a new terminal
 cd frontend
 
-# Install & Configure
+# Install Dependencies
 npm install
-echo "VITE_CLERK_PUBLISHABLE_KEY=your_key_here" > .env
+
+# Configure Auth (Clerk)
+echo "VITE_CLERK_PUBLISHABLE_KEY=your_clerk_key" > .env
 
 # Start UI
 npm run dev
 ```
 
-### 3. Proxy Setup (The Bridge)
+### 3. Proxy Setup (Required for WebSocket)
 
 ```bash
 # In a third terminal
@@ -109,15 +109,15 @@ node index.js
 3.  Go to the **Sandbox** and start typing!
 
 ### Example Prompts
-> *"Create a snake game in Python and save it as game.py"*
+> *"Research the current state of Quantum Computing and write a 2-page PDF report"*
 
-> *"Research the latest AI trends and generate a summary report in Markdown"*
+> *"Read the 'sales.csv' file in the workspace and plot the monthly revenue using a Jupyter Notebook"*
 
-> *"Ask me for my budget, then create a travel itinerary for Japan"*
+> *"Create a slide deck about 'The Future of AI' with 5 slides"*
 
 ---
 
-## � Tech Stack
+## 📦 Tech Stack
 
 <div align="center">
 
@@ -125,8 +125,8 @@ node index.js
 | :--- | :--- |
 | ![React](https://img.shields.io/badge/React_18-20232A?style=for-the-badge&logo=react&logoColor=61DAFB) | ![Python](https://img.shields.io/badge/Python_3.12-3776AB?style=for-the-badge&logo=python&logoColor=white) |
 | ![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white) | ![FastAPI](https://img.shields.io/badge/FastAPI-005571?style=for-the-badge&logo=fastapi) |
-| ![Tailwind](https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white) | ![Playwright](https://img.shields.io/badge/Playwright-45ba4b?style=for-the-badge&logo=Playwright&logoColor=white) |
-| ![Vite](https://img.shields.io/badge/Vite-646CFF?style=for-the-badge&logo=vite&logoColor=white) | ![OpenAI](https://img.shields.io/badge/OpenAI_API-412991?style=for-the-badge&logo=openai&logoColor=white) |
+| ![Tailwind](https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white) | ![Tavily](https://img.shields.io/badge/Tavily_Search-FF0000?style=for-the-badge&logo=target&logoColor=white) |
+| ![Vite](https://img.shields.io/badge/Vite-646CFF?style=for-the-badge&logo=vite&logoColor=white) | ![Jupyter](https://img.shields.io/badge/Jupyter-F37626?style=for-the-badge&logo=jupyter&logoColor=white) |
 
 </div>
 
