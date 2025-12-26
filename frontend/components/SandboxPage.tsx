@@ -21,6 +21,8 @@ import {
   Code,
   Download
 } from 'lucide-react';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
 
 interface SandboxPageProps {
@@ -87,6 +89,7 @@ export const SandboxPage: React.FC<SandboxPageProps> = ({ autoRun = false }) => 
   const isDocxFile = (filename: string) => filename.toLowerCase().endsWith('.docx');
   const isBinaryFile = (filename: string) => /\.(xlsx|xls|zip|tar|gz|7z|exe|bin)$/i.test(filename);
   const isNotebookFile = (filename: string) => filename.toLowerCase().endsWith('.ipynb');
+  const isMarkdownFile = (filename: string) => filename.toLowerCase().endsWith('.md');
   const isImageFile = (filename: string) => /\.(png|jpg|jpeg|gif|webp|svg)$/i.test(filename);
   const isHtmlFile = (filename: string) => /\.html?$/i.test(filename);
   const isReactFile = (filename: string) => /\.(jsx|tsx)$/i.test(filename);
@@ -464,7 +467,7 @@ export const SandboxPage: React.FC<SandboxPageProps> = ({ autoRun = false }) => 
           </div>
         </div>
 
-        {isDone && !showCodePanel && (
+        {!showCodePanel && (
           <Button
             onClick={handleShowCode}
             className="bg-primary text-primary-foreground hover:bg-primary/90 transition-all"
@@ -723,6 +726,14 @@ export const SandboxPage: React.FC<SandboxPageProps> = ({ autoRun = false }) => 
                               className="w-full h-full border-none"
                               title="PDF Preview"
                             />
+                          </div>
+                        ) : isMarkdownFile(activeFile) ? (
+                          <div className="h-full w-full overflow-auto p-6 bg-[#1e1e1e] text-gray-300">
+                            <div className="prose prose-invert max-w-none">
+                              <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                                {fileContent}
+                              </ReactMarkdown>
+                            </div>
                           </div>
                         ) : (
                           <div className="h-full w-full overflow-auto min-w-0">
