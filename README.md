@@ -57,7 +57,7 @@ graph LR
 
 ```bash
 # Clone the repo
-git clone https://github.com/mannaandpoem/OpenManus.git
+git clone https://github.com/shanmuka7482/Open-Manus
 cd OpenManus/backend
 
 # Create environment (Python 3.12 Recommended)
@@ -150,4 +150,5 @@ Distributed under the MIT License. See `LICENSE` for more information.
 <br>
 <div align="center">
   <p>Made with ❤️ by the <b>Nava AI Team</b></p>
+  <p><i>Built on top of <a href="https://github.com/mannaandpoem/OpenManus">OpenManus</a></i></p>
 </div>
