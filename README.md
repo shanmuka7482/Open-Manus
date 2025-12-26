@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="backend/assets/logo.jpeg" width="180" alt="Nava AI Logo" style="border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.15);" />
+  <img src="backend/assets/logo.jpeg" width="350" alt="Nava AI Logo" style="border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.15);" />
 
   # Nava AI
   ### The Next-Gen AI Agent Platform
