@@ -1,67 +1,89 @@
 <div align="center">
-  <img src="backend/assets/logo.jpeg" width="350" alt="Nava AI Logo" style="border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.15);" />
+  <img src="backend/assets/logo.jpeg" width="350" alt="Nava AI Logo" style="border-radius: 20px; box-shadow: 0 20px 40px rgba(0,0,0,0.2);" />
 
   # Nava AI
-  ### The Next-Gen AI Agent Platform
+  ### The Next-Gen Autonomous Agent Platform
 
   <p align="center">
-    <b>Build. Deploy. Automate.</b><br>
-    A full-stack solution for creating intelligent, autonomous agents with a premium web interface.
+    <b>Build. Deploy. Automate.</b>
+  </p>
+
+  <!-- Badge Wall -->
+  <p>
+    <img src="https://img.shields.io/badge/Python-3.12+-3776AB?style=flat-square&logo=python&logoColor=white" alt="Python" />
+    <img src="https://img.shields.io/badge/React-18-20232A?style=flat-square&logo=react&logoColor=61DAFB" alt="React" />
+    <img src="https://img.shields.io/badge/FastAPI-High%20Performance-009688?style=flat-square&logo=fastapi&logoColor=white" alt="FastAPI" />
+    <img src="https://img.shields.io/badge/License-MIT-yellow?style=flat-square" alt="License" />
+  </p>
+
+  <p align="center">
+    <i>A robust full-stack solution bridging the gap between chat interfaces and real-world task automation.</i>
   </p>
 </div>
 
+<br>
+
+## 🚀 Why Nava AI?
+
+**Nava AI** isn't just another chatbot. It's a configured **agentic runtime** that gives LLMs hands and eyes.
+
+*   **⚡ Real-World Action**: Unlike standard chat, Nava can edit files, run Python code, and generate documents.
+*   **🛡️ Secure Sandbox**: Every action happens in a controlled workspace, keeping your host system safe.
+*   **🧠 Tool-Use First**: Built from the ground up for "Reasoning Models" (like GPT-4o and Claude 3.5) that plan before they act.
+
 ---
 
-## ⚡ Overview
+## ✨ Capabilities Grid
 
-**Nava AI** is a powerful autonomous agent platform that combines a robust Python backend with a sleek React frontend. It allows you to run a highly capable AI agent that can write code, analyze data, generate documents, and search the web—all within a secure, sandboxed environment.
-
-Designed for developers and power users, **Nava AI** bridges the gap between chat interfaces and real-world task automation.
-
----
-
-## ✨ Key Capabilities
-
-| **Core Skills** | **Creative & Data** | **Productivity** |
+| **💻 Coding & Logic** | **🖼️ Creative Suite** | **⚡ Productivity** |
 | :--- | :--- | :--- |
-| 🐍 **Python Execution**<br>Sandboxed code running for logic & math | 🖼️ **Image Generation**<br>Create AI images on demand | � **Document Generator**<br>Create PDF, DOCX, & Excel files |
-| 🌐 **Smart Web Search**<br>Powered by Tavily for real-time answers | � **Jupyter Notebooks**<br>Interactive data analysis & plotting | 🗣️ **Human-in-the-Loop**<br>Asks for clarification when needed |
-| �️ **File Operations**<br>Read, write, and patch files safely | �️ **Presentation Mode**<br>Generate professional PPTX slides | � **Session Summaries**<br>Auto-summarizes completed tasks |
+| **Python Sandbox**<br>Executes logic, math, and data analysis in real-time. | **Image Generation**<br>Creates stunning visuals on command. | **Web Search**<br>Tavily-powered deep research and answers. |
+| **Jupyter Notebooks**<br>Auto-generates and runs notebooks for data science. | **Presentation**<br>Builds professional PPTX slide decks instantly. | **Doc Generator**<br>Compiles reports into PDF, DOCX, and Excel. |
+| **File Ops**<br>Safe read/write access to a dedicated workspace. | **HTML Preview**<br>Live-renders generated web apps. | **Session Summary**<br>Auto-notes on what was accomplished. |
 
 ---
 
-## 🏗️ Architecture
+## 🧠 How it Works
 
-Nava AI uses a modular "Tool-Use" architecture where the agent thinks, plans, and selects the right tool for the job.
+Nava AI operates on a **Plan-Execute-Observe** loop, ensuring high reliability for complex tasks.
 
 ```mermaid
 graph LR
-    User[Web Interface] <-->|WebSocket| Proxy[Node.js Proxy]
-    Proxy <-->|WebSocket| API[FastAPI Backend]
-    API <--> Agent[Nava Agent]
-    Agent -- Selects Tool --> Tools[Tool Collection]
-    Tools -->|Execute| Sandbox[Sandbox Environment]
-    Sandbox -->|Result| Agent
+    User[User Request] -->|WebSocket| Brain[Agent Core]
+    
+    subgraph "Reasoning Loop"
+        Brain -->|1. Plan| Planner[Step-by-Step Plan]
+        Planner -->|2. Select Tool| ToolBox
+    end
+    
+    subgraph "Capabilities"
+        ToolBox -->|Run Code| Python[Python Runtime]
+        ToolBox -->|Search| Web[Tavily Search]
+        ToolBox -->|Create| Files[File System]
+    end
+    
+    Python -->|Output| Brain
+    Web -->|Results| Brain
+    Files -->|Content| Brain
+    
+    Brain -->|Final Response| UI[Web Interface]
 ```
-
-#### Directory Structure
-*   `frontend/` - **React Application** (Vite, Radix UI)
-*   `backend/` - **Python Environment** (FastAPI, LangChain)
-*   `backend/workspace/` - **Sandboxed Area** where the agent creates your files
 
 ---
 
-## 🚀 Quick Start Guide
+## �️ Installation
 
-### 1. Backend Setup
+Get up and running in minutes. We recommend **Python 3.12+** and **Node.js 18+**.
+
+<details open>
+<summary><b>1️⃣ Backend Setup (The Brain)</b></summary>
 
 ```bash
 # Clone the repo
 git clone https://github.com/shanmuka7482/Open-Manus
 cd OpenManus/backend
 
-# Create environment (Python 3.12 Recommended)
-# Using uv (faster):
+# Create environment (Using uv is recommended for speed)
 curl -LsSf https://astral.sh/uv/install.sh | sh
 uv venv --python 3.12
 source .venv/bin/activate  # Windows: .venv\Scripts\activate
@@ -69,51 +91,54 @@ uv pip install -r requirements.txt
 
 # Configure API Keys
 cp config/config.example.toml config/config.toml
-# Edit config.toml: Add your OpenAI/Anthropic and Tavily keys!
+# ⚠️ Edit config.toml: Insert your OpenAI/Anthropic and Tavily keys!
 
 # Start Server
 python start_server.py
 ```
+</details>
 
-### 2. Frontend Setup
+<details>
+<summary><b>2️⃣ Frontend Setup (The Interface)</b></summary>
 
 ```bash
-# In a new terminal
+# Open a new terminal
 cd frontend
 
-# Install Dependencies
+# Install & Config
 npm install
+echo "VITE_CLERK_PUBLISHABLE_KEY=your_clerk_publishable_key" > .env
 
-# Configure Auth (Clerk)
-echo "VITE_CLERK_PUBLISHABLE_KEY=your_clerk_key" > .env
-
-# Start UI
+# Run Dev Server
 npm run dev
 ```
+</details>
 
-### 3. Proxy Setup (Required for WebSocket)
+<details>
+<summary><b>3️⃣ Proxy Setup (The Bridge)</b></summary>
 
 ```bash
-# In a third terminal
+# Open a third terminal
 cd frontend/server
 npm install
 node index.js
 ```
+</details>
 
 ---
 
-## 🎮 How to Use
+## 🎮 Usage Examples
 
-1.  Open **`http://localhost:5173`** in your browser.
-2.  **Login** to access your secure workspace.
-3.  Go to the **Sandbox** and start typing!
+Once running at `http://localhost:5173`, try these prompts to test Nava's full range:
 
-### Example Prompts
-> *"Research the current state of Quantum Computing and write a 2-page PDF report"*
+#### 📊 Data Analysis
+> *"Read `sales_data.csv` (I'll upload it), analyze the trends using Pandas, and plot a chart in a Jupyter Notebook."*
 
-> *"Read the 'sales.csv' file in the workspace and plot the monthly revenue using a Jupyter Notebook"*
+#### 📝 Research & Reporting
+> *"Research the top 5 competitors to Spotify. Write a comprehensive comparison report and save it as `competitors.pdf`."*
 
-> *"Create a slide deck about 'The Future of AI' with 5 slides"*
+#### 🎨 Creative Design
+> *"Generate a slide deck for a startup pitch about 'AI for Cats'. Make it 5 slides long and use a professional theme."*
 
 ---
 
@@ -125,8 +150,8 @@ node index.js
 | :--- | :--- |
 | ![React](https://img.shields.io/badge/React_18-20232A?style=for-the-badge&logo=react&logoColor=61DAFB) | ![Python](https://img.shields.io/badge/Python_3.12-3776AB?style=for-the-badge&logo=python&logoColor=white) |
 | ![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white) | ![FastAPI](https://img.shields.io/badge/FastAPI-005571?style=for-the-badge&logo=fastapi) |
-| ![Tailwind](https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white) | ![Tavily](https://img.shields.io/badge/Tavily_Search-FF0000?style=for-the-badge&logo=target&logoColor=white) |
-| ![Vite](https://img.shields.io/badge/Vite-646CFF?style=for-the-badge&logo=vite&logoColor=white) | ![Jupyter](https://img.shields.io/badge/Jupyter-F37626?style=for-the-badge&logo=jupyter&logoColor=white) |
+| ![Tailwind](https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white) | ![LangChain](https://img.shields.io/badge/LangChain-1C3C3C?style=for-the-badge&logo=langchain&logoColor=white) |
+| ![Vite](https://img.shields.io/badge/Vite-646CFF?style=for-the-badge&logo=vite&logoColor=white) | ![Tavily](https://img.shields.io/badge/Tavily_Search-FF0000?style=for-the-badge&logo=target&logoColor=white) |
 
 </div>
 
@@ -134,12 +159,7 @@ node index.js
 
 ## 🤝 Contributing
 
-We love builders! To contribute:
-1.  Fork the repo
-2.  Create your feature branch (`git checkout -b feature/AmazingThing`)
-3.  Commit changes (`git commit -m 'Add AmazingThing'`)
-4.  Push to branch (`git push origin feature/AmazingThing`)
-5.  Open a Pull Request
+We welcome contributions! Please fork the repository and submit a Pull Request.
 
 ---
 
