@@ -40,6 +40,7 @@
 | **Python Sandbox**<br>Executes logic, math, and data analysis in real-time. | **Image Generation**<br>Creates stunning visuals on command. | **Web Search**<br>Tavily-powered deep research and answers. |
 | **Jupyter Notebooks**<br>Auto-generates and runs notebooks for data science. | **Presentation**<br>Builds professional PPTX slide decks instantly. | **Doc Generator**<br>Compiles reports into PDF, DOCX, and Excel. |
 | **File Ops**<br>Safe read/write access to a dedicated workspace. | **HTML Preview**<br>Live-renders generated web apps. | **Session Summary**<br>Auto-notes on what was accomplished. |
+| **Wikipedia Tool**<br>Instant encyclopedic summaries. | | |
 
 ---
 
